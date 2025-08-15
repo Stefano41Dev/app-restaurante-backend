@@ -1,13 +1,13 @@
 using app_restaurante_backend.Custom;
+using app_restaurante_backend.Data;
+using app_restaurante_backend.Error;
+using app_restaurante_backend.Service.Implementations;
+using app_restaurante_backend.Service.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using app_restaurante_backend.Data;
-
-using app_restaurante_backend.Service.Interfaces;
-using app_restaurante_backend.Service.Implementations;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +21,40 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "API Restaurante",
+        Version = "v1"
+    });
+
+    // Configuración de autenticación Bearer en Swagger
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Introduce el token JWT de esta forma: Bearer {tu token}"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.AddDbContext<DbRestauranteContext>(options =>
 {
@@ -60,7 +93,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.MapControllers();
 
 app.Run();
