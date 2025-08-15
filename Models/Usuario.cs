@@ -1,4 +1,5 @@
-﻿using app_restaurante_backend.Models.Enums;
+﻿using System;
+using System.Collections.Generic;
 
 namespace app_restaurante_backend.Models;
 
