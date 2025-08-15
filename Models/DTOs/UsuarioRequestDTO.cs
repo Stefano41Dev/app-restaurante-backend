@@ -1,4 +1,4 @@
-﻿using app_restaurante_backend.Models.Enums;
+﻿using app_restaurante_backend.Models.Enums.Usuario;
 
 namespace app_restaurante_backend.Models.DTOs
 {

@@ -1,6 +1,7 @@
 ﻿using app_restaurante_backend.Custom;
-using app_restaurante_backend.Models;
+using app_restaurante_backend.Data;
 using app_restaurante_backend.Models.DTOs;
+using app_restaurante_backend.Models.Entidades;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

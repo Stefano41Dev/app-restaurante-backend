@@ -1,4 +1,4 @@
-﻿namespace app_restaurante_backend.Models.Enums
+﻿namespace app_restaurante_backend.Models.Enums.Usuario
 {
     public enum RolUsuario
     {

@@ -1,4 +1,4 @@
-﻿using app_restaurante_backend.Models;
+﻿using app_restaurante_backend.Models.Entidades;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

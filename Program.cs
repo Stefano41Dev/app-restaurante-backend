@@ -1,10 +1,13 @@
 using app_restaurante_backend.Custom;
-using app_restaurante_backend.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using app_restaurante_backend.Data;
+
+using app_restaurante_backend.Service.Interfaces;
+using app_restaurante_backend.Service.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +29,7 @@ builder.Services.AddDbContext<DbRestauranteContext>(options =>
 });
 
 builder.Services.AddSingleton<Utilidades>();
-
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

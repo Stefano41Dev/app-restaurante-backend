@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using app_restaurante_backend.Models.Entidades;
 using Microsoft.EntityFrameworkCore;
 
-namespace app_restaurante_backend.Models;
+namespace app_restaurante_backend.Data;
 
 public partial class DbRestauranteContext : DbContext
 {

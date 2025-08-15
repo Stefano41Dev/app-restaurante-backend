@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace app_restaurante_backend.Models;
+namespace app_restaurante_backend.Models.Entidades;
 
 public partial class DetalleOrdene
 {
