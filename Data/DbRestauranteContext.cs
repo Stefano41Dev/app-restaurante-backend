@@ -129,7 +129,8 @@ public partial class DbRestauranteContext : DbContext
             entity.Property(e => e.Estado)
                 .HasMaxLength(255)
                 .IsUnicode(false)
-                .HasColumnName("estado");
+                .HasColumnName("estado")
+                .HasConversion<string>();
             entity.Property(e => e.Numero)
                 .HasMaxLength(255)
                 .IsUnicode(false)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using app_restaurante_backend.Models.Enums.Ordenes;
+using System;
 using System.Collections.Generic;
 
 namespace app_restaurante_backend.Models.Entidades;
@@ -11,7 +12,7 @@ public partial class Mesa
 
     public short? Capacidad { get; set; }
 
-    public string? Estado { get; set; }
+    public EstadoMesa Estado { get; set; }
 
     public virtual ICollection<Ordene> Ordenes { get; set; } = new List<Ordene>();
 }
