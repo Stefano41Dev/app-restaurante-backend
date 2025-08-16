@@ -23,25 +23,26 @@ namespace app_restaurante_backend.Controllers
             return Ok(categorias);
         }
         [HttpPost]
-        public IActionResult crearCategoria(CategoriaRequestDTO categoriaRequestDTO)
+        public IActionResult crearCategoria([FromBody] CategoriaRequestDTO categoriaRequestDTO)
         {
             return Ok(_categoriaService.CrearCategoria(categoriaRequestDTO));
         }
         [HttpGet("{id}")]
-        public IActionResult ObtenerCategoria(int id)
+        public IActionResult ObtenerCategoria([FromRoute] int id)
         {
             return Ok(_categoriaService.ObtenerCategoria((short)id));
         }
         [HttpDelete("{id}")]
-        public IActionResult EliminarCategoria(int id)
+        public IActionResult EliminarCategoria([FromRoute] int id)
         {
             _categoriaService.EliminarCategoria((short)id);
             return Ok("Se elimino correctamente la categoria");
         }
         [HttpPut("{id}")]
-        public IActionResult ActualizarCategoria(short id, CategoriaRequestDTO categoriaRequestDTO)
+        public IActionResult ActualizarCategoria([FromRoute] short id, [FromBody] CategoriaRequestDTO categoriaRequestDTO)
         {
             return Ok(_categoriaService.ActualizarCategoria(id, categoriaRequestDTO));
         }
+        
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using app_restaurante_backend.Models.Enums.ItemMenu;
+using System;
 using System.Collections.Generic;
 
 namespace app_restaurante_backend.Models.Entidades;
@@ -17,7 +18,7 @@ public partial class ItemsMenu
 
     public short CategoriaId { get; set; }
 
-    public string? Estado { get; set; }
+    public EstadoItemMenu Estado { get; set; }
 
     public bool? Activo { get; set; }
 
