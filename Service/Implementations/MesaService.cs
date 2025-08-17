@@ -20,6 +20,22 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 throw new Exception("No se encontro la mesa");
             }
+            if (string.IsNullOrEmpty(mesaDTO.Numero))
+            {
+                throw new Exception("El numero de la mesa no puede estar vacio");
+            }
+            if (mesaDTO.Capacidad < 1)
+            {
+                throw new Exception("La capacidad de la mesa no puede ser menor a 1");
+            }
+            if (!Enum.IsDefined(typeof(EstadoMesa), mesaDTO.Estado))
+            {
+                throw new Exception("Estado de mesa no valido");
+            }
+            if (_context.Mesas.Any(m => m.Numero == mesaDTO.Numero))
+            {
+                throw new Exception("Ya existe una mesa con ese numero");
+            }
             mesaBuscada.Numero = mesaDTO.Numero;
             mesaBuscada.Capacidad = mesaDTO.Capacidad;
             mesaBuscada.Estado = Enum.Parse<EstadoMesa>(mesaDTO.Estado, true);
@@ -50,6 +66,14 @@ namespace app_restaurante_backend.Service.Implementations
             if(mesaDto.Capacidad < 1)
             {
                 throw new Exception("La capacidad de la mesa no puede ser menor a 1");
+            }
+            if (!Enum.IsDefined(typeof(EstadoMesa), mesaDto.Estado))
+            {
+                throw new Exception("Estado de mesa no valido");
+            }
+            if (_context.Mesas.Any(m => m.Numero == mesaDto.Numero))
+            {
+                throw new Exception("Ya existe una mesa con ese numero");
             }
             var nuevaMesa = new Mesa
             {

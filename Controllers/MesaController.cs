@@ -33,12 +33,23 @@ namespace app_restaurante_backend.Controllers
         [HttpPost]
         public IActionResult AgregarMesa([FromBody] MesaRequestDTO mesa)
         {
-            if (mesa == null)
-            {
-                return BadRequest("Datos de la mesa no válidos");
-            }
-            var nuevaMesa = _mesaService.AgregarMesa(mesa);
-            return CreatedAtAction(nameof(ObtenerMesa), new { id = nuevaMesa.Id }, nuevaMesa);
+           return Ok(_mesaService.AgregarMesa(mesa));
+        }
+        [HttpPut("{id}")]
+        public IActionResult ActualizarMesa([FromRoute] int id, [FromBody] MesaRequestDTO mesa)
+        {
+            return Ok(_mesaService.ActualizarMesa(id, mesa));
+        }
+        [HttpDelete("{id}")]
+        public IActionResult EliminarMesa([FromRoute] int id)
+        {
+            _mesaService.EliminarMesa(id);
+            return NoContent();
+        }
+        [HttpPatch("{id}")]
+        public IActionResult CambiarEstadoMesa([FromRoute]int id, [FromBody] MesaEstadoRequestDTO estado)
+        {
+            return Ok(_mesaService.CambiarEstadoMesa(id, estado));
         }
     }
 }

@@ -64,6 +64,7 @@ builder.Services.AddDbContext<DbRestauranteContext>(options =>
 builder.Services.AddSingleton<Utilidades>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IItemMenuService, ItemMenuService>();
+builder.Services.AddScoped<IMesaService, MesaService>();
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
