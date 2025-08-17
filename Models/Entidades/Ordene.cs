@@ -1,4 +1,5 @@
-﻿using System;
+﻿using app_restaurante_backend.Models.Enums.Ordenes;
+using System;
 using System.Collections.Generic;
 
 namespace app_restaurante_backend.Models.Entidades;
@@ -11,7 +12,7 @@ public partial class Ordene
 
     public short MesaId { get; set; }
 
-    public string? Estado { get; set; }
+    public EstadoOrden? Estado { get; set; }
 
     public DateTime? FechaCreacion { get; set; }
 
