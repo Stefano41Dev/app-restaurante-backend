@@ -2,7 +2,8 @@
 
 namespace app_restaurante_backend.Models.DTOs.DetalleOrden
 {
-    public record DetalleOrdenResponseDto(long Id,
+    public record DetalleOrdenResponseDto(
+        long Id,
         string NombreItem,
         CategoriaResponseDTO Categoria,
         int Cantidad,

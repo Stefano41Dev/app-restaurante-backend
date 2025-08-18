@@ -15,15 +15,17 @@ public partial class DetalleOrdene
 
     public double? PrecioUnitario { get; set; }
 
-    public double? Igv { get; set; } = 0.18;
+    public double? Igv { get; set; } = 1.18;
 
     public double? Subtotal { get; set; }
 
     public double? Total { get; set; }
 
-    public bool? Activo { get; set; }
+    public bool? Activo { get; set; } = true;
 
     public virtual Ordene Orden { get; set; } = null!;
 
     public virtual ItemsMenu Plato { get; set; } = null!;
+
+   
 }
