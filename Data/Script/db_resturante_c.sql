@@ -120,6 +120,3 @@ GO
 ALTER TABLE detalle_ordenes
     ADD CONSTRAINT FK_DETALLE_ORDENES_ON_PLATO FOREIGN KEY (plato_id) REFERENCES items_menu (id)
 GO
-
-
-insert into cate

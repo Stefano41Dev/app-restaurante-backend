@@ -1,12 +1,13 @@
 ﻿using app_restaurante_backend.Data;
+using app_restaurante_backend.Models.DTOs.Categoria;
+using app_restaurante_backend.Models.DTOs.DetalleOrden;
 using app_restaurante_backend.Models.DTOs.Orden;
 using app_restaurante_backend.Models.Entidades;
 using app_restaurante_backend.Models.Enums.Ordenes;
 using app_restaurante_backend.Service.Interfaces;
-using app_restaurante_backend.Models.DTOs.DetalleOrden;
-using app_restaurante_backend.Models.DTOs.Categoria;
 using EntityFrameworkPaginateCore;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace app_restaurante_backend.Service.Implementations
 {
@@ -14,12 +15,46 @@ namespace app_restaurante_backend.Service.Implementations
     {
         private readonly DbRestauranteContext _context;
 
-        public OrdenService(DbRestauranteContext context) { 
+        public OrdenService(DbRestauranteContext context) {
             _context = context;
         }
-        
-        public OrdenResponseDto ActualizarEstado(OrdenEstadoRequestDto requestDto)
+
+        public OrdenResponseDto ActualizarEstado(long id,OrdenEstadoRequestDto requestDto)
         {
+            var o = _context.Ordenes.Include(o => o.DetalleOrdenes)
+                    .ThenInclude(d => d.Plato)
+                        .ThenInclude(p => p.Categoria).FirstOrDefault(o => o.Id == id);
+            o!.Estado = Enum.Parse<EstadoOrden>(requestDto.EstadoOrden, true);
+            _context.Ordenes.Update(o);
+            if (_context.SaveChanges() > 0)
+            {
+                return new OrdenResponseDto(
+                    o.Id,
+                    o.CodigoOrden ?? string.Empty,
+                    o.MesaId,
+                    o.Estado.ToString() ?? string.Empty,
+                    o.FechaCreacion ?? DateTime.UtcNow,
+                    o.HoraCreacion ?? TimeSpan.Zero,
+                    o.MontoSubtotal ?? 0,
+                    o.MontoTotal ?? 0,
+                    o.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
+                        d.Id,
+                        d.Plato.Nombre ?? string.Empty,
+                        new CategoriaResponseDTO(
+                            d.Plato.Categoria.Id,
+                            d.Plato.Categoria.Nombre ?? String.Empty,
+                            d.Plato.Categoria.Descripcion ?? String.Empty,
+                            d.Plato.Categoria.PrecioMinimo ?? 0
+                        ),
+                        d.Cantidad ?? 0,
+                        d.PrecioUnitario ?? 0,
+                        d.Igv ?? 0,
+                        d.Subtotal ?? 0,
+                        d.Total ?? 0
+                    )).ToList()
+                );
+
+            }
             throw new NotImplementedException();
         }
 
@@ -29,7 +64,7 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 throw new ArgumentException("La lista de detalles no puede estar vacía.");
             }
-            if(requestDto.MesaId <= 0)
+            if (requestDto.MesaId <= 0)
             {
                 throw new ArgumentException("El ID de la mesa debe ser mayor que cero.");
             }
@@ -45,20 +80,20 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 throw new ArgumentException("Uno o más platos especificados no existen.");
             }
-            if( _context.Mesas
+            if (_context.Mesas
                 .Where(m => m.Id == requestDto.MesaId && m.Estado == EstadoMesa.OCUPADO)
                 .Any())
             {
                 throw new InvalidOperationException("La mesa ya está ocupada.");
             }
-            Ordene orden = new Ordene()
+            Ordene orden = new()
             {
                 CodigoOrden = GenerarCodigo(),
                 MesaId = requestDto.MesaId,
                 Estado = EstadoOrden.PENDIENTE,
                 FechaCreacion = DateTime.Now,
                 HoraCreacion = DateTime.Now.TimeOfDay,
-                MontoSubtotal = 0, 
+                MontoSubtotal = 0,
                 MontoTotal = 0,
                 Activo = true,
             };
@@ -86,7 +121,7 @@ namespace app_restaurante_backend.Service.Implementations
             if (_context.SaveChanges() > 0)
             {
                 var ordenConDetalles = _context.Ordenes
-                    .Include(o=>o.DetalleOrdenes)
+                    .Include(o => o.DetalleOrdenes)
                     .ThenInclude(d => d.Plato)
                     .ThenInclude(p => p.Categoria)
                     .Where(o => o.Id == orden.Id)
@@ -98,20 +133,20 @@ namespace app_restaurante_backend.Service.Implementations
 
                 return new OrdenResponseDto(
                      ordenConDetalles.Id,
-                     ordenConDetalles.CodigoOrden,
+                     ordenConDetalles.CodigoOrden!,
                      ordenConDetalles.MesaId,
-                     ordenConDetalles.Estado.ToString(),
-                     ordenConDetalles.FechaCreacion.Value,
-                     ordenConDetalles.HoraCreacion.Value,
+                     ordenConDetalles.Estado.ToString()!,
+                     ordenConDetalles.FechaCreacion!.Value,
+                     ordenConDetalles.HoraCreacion!.Value,
                      ordenConDetalles.MontoSubtotal ?? 0,
                      ordenConDetalles.MontoTotal ?? 0,
                      ordenConDetalles.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
                          d.Id,
-                         d.Plato.Nombre,
+                         d.Plato.Nombre!,
                          new CategoriaResponseDTO(
                              d.Plato.CategoriaId,
-                             d.Plato.Categoria.Nombre,
-                             d.Plato.Categoria.Descripcion,
+                             d.Plato.Categoria.Nombre!,
+                             d.Plato.Categoria.Descripcion!,
                              d.Plato.Categoria.PrecioMinimo ?? 0
                          ),
                          d.Cantidad ?? 0,
@@ -128,14 +163,80 @@ namespace app_restaurante_backend.Service.Implementations
             }
         }
 
-        public Page<OrdenResponseDto> ListaOrdenes()
+        public Page<OrdenResponseDto> ListaOrdenes(int pageNumber, int pageSize)
         {
-            throw new NotImplementedException();
+            var ordenes = _context.Ordenes
+                .Include(o => o.DetalleOrdenes)
+                    .ThenInclude(d => d.Plato)
+                        .ThenInclude(p => p.Categoria)
+                .Select(o => new OrdenResponseDto(
+                    o.Id,
+                    o.CodigoOrden ?? string.Empty,
+                    o.MesaId,
+                    o.Estado.ToString() ?? string.Empty,
+                    o.FechaCreacion ?? DateTime.UtcNow,
+                    o.HoraCreacion ?? TimeSpan.Zero,
+                    o.MontoSubtotal ?? 0,
+                    o.MontoTotal ?? 0,
+                    o.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
+                        d.Id,
+                        d.Plato.Nombre ?? string.Empty,
+                        new CategoriaResponseDTO(
+                            d.Plato.Categoria.Id,
+                            d.Plato.Categoria.Nombre ?? String.Empty,
+                            d.Plato.Categoria.Descripcion ?? String.Empty,
+                            d.Plato.Categoria.PrecioMinimo ?? 0
+                        ),
+                        d.Cantidad ?? 0,
+                        d.PrecioUnitario ?? 0,
+                        d.Igv ?? 0,
+                        d.Subtotal ?? 0,
+                        d.Total ?? 0
+                    )).ToList()
+                ));
+
+            return ordenes.Paginate(pageNumber, pageSize);
         }
+
+
 
         public OrdenResponseDto ObtenerOrden(long id)
         {
-            throw new NotImplementedException();
+            var Orden = _context.Ordenes.Where(c => c.Id == id).Include(o => o.DetalleOrdenes)
+                    .ThenInclude(d => d.Plato)
+                        .ThenInclude(p => p.Categoria)
+                .Select(o => new OrdenResponseDto(
+                    o.Id,
+                    o.CodigoOrden ?? string.Empty,
+                    o.MesaId,
+                    o.Estado.ToString() ?? string.Empty,
+                    o.FechaCreacion ?? DateTime.UtcNow,
+                    o.HoraCreacion ?? TimeSpan.Zero,
+                    o.MontoSubtotal ?? 0,
+                    o.MontoTotal ?? 0,
+                    o.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
+                        d.Id,
+                        d.Plato.Nombre ?? string.Empty,
+                        new CategoriaResponseDTO(
+                            d.Plato.Categoria.Id,
+                            d.Plato.Categoria.Nombre ?? String.Empty,
+                            d.Plato.Categoria.Descripcion ?? String.Empty,
+                            d.Plato.Categoria.PrecioMinimo ?? 0
+                        ),
+                        d.Cantidad ?? 0,
+                        d.PrecioUnitario ?? 0,
+                        d.Igv ?? 0,
+                        d.Subtotal ?? 0,
+                        d.Total ?? 0
+                    )).ToList()
+                )).FirstOrDefault();
+
+            if (Orden == null)
+            {
+                throw new Exception("No se encontro la Orden");
+            }
+            return Orden;
+
         }
 
         public string GenerarCodigo()
@@ -149,7 +250,5 @@ namespace app_restaurante_backend.Service.Implementations
 
             return $"COD-{numero:D7}";
         }
-       
-
     }
 }

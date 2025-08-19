@@ -2,7 +2,7 @@
 
 namespace app_restaurante_backend.Models.DTOs.Orden
 {
-    public record OrdenEstadoRequestDto(EstadoOrden EstadoOrden)
+    public record OrdenEstadoRequestDto(string EstadoOrden)
     {
     }
 }
