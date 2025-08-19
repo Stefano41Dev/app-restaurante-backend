@@ -6,7 +6,7 @@ namespace app_restaurante_backend.Models.DTOs.Mesa
         short Id,
         string Numero,
         short Capacidad,
-        EstadoMesa Estado
+        string Estado
     )
     {
 

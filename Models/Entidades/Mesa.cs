@@ -14,5 +14,8 @@ public partial class Mesa
 
     public EstadoMesa Estado { get; set; }
 
+    public bool? Activo { get; set; }
+
     public virtual ICollection<Ordene> Ordenes { get; set; } = new List<Ordene>();
+
 }

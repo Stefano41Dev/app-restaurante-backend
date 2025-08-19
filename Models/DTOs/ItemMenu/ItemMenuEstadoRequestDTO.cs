@@ -1,7 +1,9 @@
-﻿namespace app_restaurante_backend.Models.DTOs.ItemMenu
+﻿using System.Text.Json.Serialization;
+
+namespace app_restaurante_backend.Models.DTOs.ItemMenu
 {
     public record ItemMenuEstadoRequestDTO(
-        string nombreEstado
+        [property:JsonPropertyName("estado")]string nombreEstado
     )
     {
 

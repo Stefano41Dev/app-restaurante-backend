@@ -24,12 +24,9 @@ namespace app_restaurante_backend.Service.Implementations
 
             if (itemBuscado == null)
             {
-                throw new Exception("No se encontro el item");
+                throw new Exception("No se encontro el item con id: " + id);
             }
-            if (_context.ItemsMenus.Any(i => i.Nombre == itemMenuDto.Nombre && i.Activo == true))
-            {
-                throw new Exception("Ya existe un item con ese nombre");
-            }
+            
             if (itemMenuDto.Precio < itemBuscado.Categoria.PrecioMinimo)
             {
                 throw new Exception("El precio no puede ser menor al precio minimo de su categoria");
@@ -42,7 +39,10 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 throw new Exception("El estado no es valido");
             }
-
+            if(_context.CategoriasItems.FirstOrDefault(c => c.Id == itemMenuDto.CategoriaId && c.Activo == true) == null)
+            {
+                throw new Exception("No se encontro la categoria");
+            }
             itemBuscado.Nombre = itemMenuDto.Nombre;
             itemBuscado.Descripcion = itemMenuDto.Descripcion;
             itemBuscado.Precio = itemMenuDto.Precio;
@@ -60,7 +60,7 @@ namespace app_restaurante_backend.Service.Implementations
                     itemBuscado.Precio ?? 0,
                     itemBuscado.EnlaceImagen ?? string.Empty,
                     new CategoriaResponseDTO(itemBuscado.CategoriaId, itemBuscado.Categoria!.Nombre!, itemBuscado.Categoria!.Descripcion!, itemBuscado.Categoria!.PrecioMinimo ?? 0),
-                    itemBuscado.Estado
+                    itemBuscado.Estado.ToString()
                 );
             }
             else
@@ -114,7 +114,7 @@ namespace app_restaurante_backend.Service.Implementations
                     NuevoItemMenu.Precio ?? 0,
                     NuevoItemMenu.EnlaceImagen ?? string.Empty,
                     new CategoriaResponseDTO(categoria.Id, categoria.Nombre!, categoria.Descripcion!, categoria.PrecioMinimo??0),
-                    NuevoItemMenu.Estado
+                    NuevoItemMenu.Estado.ToString()
                 );
             }
             else
@@ -149,7 +149,7 @@ namespace app_restaurante_backend.Service.Implementations
                 itemBuscado.Precio ?? 0,
                 itemBuscado.EnlaceImagen ?? string.Empty,
                 new CategoriaResponseDTO(itemBuscado.CategoriaId, itemBuscado.Categoria!.Nombre!, itemBuscado.Categoria!.Descripcion!, itemBuscado.Categoria!.PrecioMinimo ?? 0),
-                itemBuscado.Estado
+                itemBuscado.Estado.ToString()
             );
 
         }
@@ -182,7 +182,7 @@ namespace app_restaurante_backend.Service.Implementations
                 itemBuscado.Precio ?? 0,
                 itemBuscado.EnlaceImagen ?? string.Empty,
                 new CategoriaResponseDTO(itemBuscado.CategoriaId, itemBuscado.Categoria!.Nombre!, itemBuscado.Categoria!.Descripcion!, itemBuscado.Categoria!.PrecioMinimo ?? 0),
-                itemBuscado.Estado
+                itemBuscado.Estado.ToString()
             );
         }
 
@@ -197,7 +197,7 @@ namespace app_restaurante_backend.Service.Implementations
                 i.Precio ?? 0,
                 i.EnlaceImagen ?? string.Empty,
                 new CategoriaResponseDTO(i.CategoriaId, i.Categoria!.Nombre!, i.Categoria!.Descripcion!, i.Categoria!.PrecioMinimo ?? 0),
-                i.Estado
+                i.Estado.ToString()
             ));
 
             return items.Paginate(pageNumber, pageSize);
@@ -215,7 +215,7 @@ namespace app_restaurante_backend.Service.Implementations
                     i.Precio ?? 0,
                     i.EnlaceImagen ?? string.Empty,
                     new CategoriaResponseDTO(i.CategoriaId, i.Categoria!.Nombre!, i.Categoria!.Descripcion!, i.Categoria!.PrecioMinimo ?? 0),
-                    i.Estado
+                    i.Estado.ToString()
                     ));
             return items.Paginate(pageNumber, pageSize);
         }
@@ -231,7 +231,7 @@ namespace app_restaurante_backend.Service.Implementations
                     i.Precio ?? 0,
                     i.EnlaceImagen ?? string.Empty,
                     new CategoriaResponseDTO(i.CategoriaId, i.Categoria!.Nombre!, i.Categoria!.Descripcion!, i.Categoria!.PrecioMinimo ?? 0),
-                    i.Estado
+                    i.Estado.ToString()
                 ));
             return itemMenuNombre.Paginate(pageNumber, pageSize);
         }

@@ -76,7 +76,7 @@ public partial class DbRestauranteContext : DbContext
 
             entity.HasOne(d => d.Orden).WithMany(p => p.DetalleOrdenes)
                 .HasForeignKey(d => d.OrdenId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_DETALLE_ORDENES_ON_ORDEN");
 
             entity.HasOne(d => d.Plato).WithMany(p => p.DetalleOrdenes)
@@ -138,6 +138,7 @@ public partial class DbRestauranteContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("numero");
+            entity.Property(e => e.Activo).HasColumnName("activo");
         });
 
         modelBuilder.Entity<Ordene>(entity =>

@@ -16,4 +16,13 @@ public partial class CategoriasItem
     public bool? Activo { get; set; }
 
     public virtual ICollection<ItemsMenu> ItemsMenus { get; set; } = new List<ItemsMenu>();
+
+    public void eliminarCategoria()
+    {
+        this.Activo = false;
+        for(int i = 0; i < ItemsMenus.Count; i++)
+        {
+            ItemsMenus.ElementAt(i).Activo = false;
+        }
+    }
 }

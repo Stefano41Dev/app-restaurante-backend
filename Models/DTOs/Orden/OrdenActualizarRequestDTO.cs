@@ -1,10 +1,9 @@
 ﻿using app_restaurante_backend.Models.DTOs.DetalleOrden;
-using System.Text.Json.Serialization;
-
 namespace app_restaurante_backend.Models.DTOs.Orden
 {
-    public record OrdenRequestDto(
-        [property:JsonPropertyName("mesa_id")]short MesaId,
+    public record OrdenActualizarRequestDTO(
         List<DetalleOrdenRequestDto> Detalles
-    ){}
+        )
+    {
+    }
 }

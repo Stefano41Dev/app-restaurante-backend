@@ -1,5 +1,6 @@
 ﻿using app_restaurante_backend.Models.DTOs.Categoria;
 using app_restaurante_backend.Models.Enums.ItemMenu;
+using System.Text.Json.Serialization;
 
 namespace app_restaurante_backend.Models.DTOs.ItemMenu
 {
@@ -8,9 +9,9 @@ namespace app_restaurante_backend.Models.DTOs.ItemMenu
         string Nombre,
         string Descripcion,
         double Precio,
-        string EnlaceImagen,
+        [property:JsonPropertyName("enlace_imagen")]string EnlaceImagen,
         CategoriaResponseDTO Categoria,
-        EstadoItemMenu Estado
+        string Estado
         )
     {
     }

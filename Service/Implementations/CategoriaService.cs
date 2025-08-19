@@ -3,6 +3,7 @@ using app_restaurante_backend.Models.DTOs.Categoria;
 using app_restaurante_backend.Models.Entidades;
 using app_restaurante_backend.Service.Interfaces;
 using EntityFrameworkPaginateCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace app_restaurante_backend.Service.Implementations
 {
@@ -89,13 +90,15 @@ namespace app_restaurante_backend.Service.Implementations
 
         void ICategoriaService.EliminarCategoria(short id)
         {
-            var categoriaBuscada = _context.CategoriasItems.FirstOrDefault(c => c.Id == id && c.Activo == true);
+            var categoriaBuscada = _context.CategoriasItems
+                .Include(p => p.ItemsMenus)
+                .FirstOrDefault(c => c.Id == id && c.Activo == true);
             
             if (categoriaBuscada == null)
             {
                 throw new Exception("No se encontro la categoria");
             }
-            categoriaBuscada.Activo = false;
+            categoriaBuscada.eliminarCategoria();
             _context.CategoriasItems.Update(categoriaBuscada);
             _context.SaveChanges();
         }

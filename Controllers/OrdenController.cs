@@ -2,6 +2,7 @@
 using app_restaurante_backend.Models.DTOs.Orden;
 using app_restaurante_backend.Service.Implementations;
 using app_restaurante_backend.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,8 @@ namespace app_restaurante_backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class OrdenController : ControllerBase
     {
         private readonly IOrdenService _service;
@@ -31,13 +34,20 @@ namespace app_restaurante_backend.Controllers
             }
         }
         [HttpGet]
-        public IActionResult obtenerOrdenes(int pageNumber = 1, int pageSize = 10)
+        public IActionResult obtenerOrdenes([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var ordenes = _service.ListaOrdenes(pageNumber, pageSize);
             return Ok(ordenes);
         }
+        [HttpGet("hoy")]
+        public IActionResult obtenerOrdenesDeHoy([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var ordenes = _service.ListaOrdenesDeHoy(pageNumber, pageSize);
+            return Ok(ordenes);
+        }
+
         [HttpGet("{id}")]
-        public IActionResult obtenerOrden([FromRoute]long id)
+        public IActionResult obtenerOrden([FromRoute] long id)
         {
             var orden = _service.ObtenerOrden(id);
             if (orden == null)
@@ -46,10 +56,36 @@ namespace app_restaurante_backend.Controllers
             }
             return Ok(orden);
         }
-        [HttpPatch("{id}")]
+        [HttpPatch("cambiar-estado/{id}")]
         public IActionResult CambiarEstadoOrden([FromRoute] int id, [FromBody] OrdenEstadoRequestDto estado)
         {
-            return Ok(_service.ActualizarEstado(id,estado));
+            return Ok(_service.ActualizarEstado(id, estado));
+        }
+        [HttpPut("{id}")]
+        public IActionResult ActualizarOrden([FromRoute] long id, [FromBody] OrdenActualizarRequestDTO requestDto)
+        {
+            try
+            {
+                var ordenActualizada = _service.ActualizarOrden(id, requestDto);
+                return Ok(ordenActualizada);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpDelete]
+        public IActionResult DesactivarOrdenes()
+        {
+            try
+            {
+                _service.DesactivarOrdenes();
+                return Ok("Todas las ordenes han sido desactivadas correctamente.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

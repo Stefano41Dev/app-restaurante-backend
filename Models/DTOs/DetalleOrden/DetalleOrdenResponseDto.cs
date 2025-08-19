@@ -1,13 +1,13 @@
 ﻿using app_restaurante_backend.Models.DTOs.Categoria;
+using System.Text.Json.Serialization;
 
 namespace app_restaurante_backend.Models.DTOs.DetalleOrden
 {
     public record DetalleOrdenResponseDto(
         long Id,
-        string NombreItem,
-        CategoriaResponseDTO Categoria,
+        [property: JsonPropertyName("nombre_item_menu")]  string NombreItem,
         int Cantidad,
-        double PrecioUnitario,
+        [property: JsonPropertyName("precio_unitario")]   double PrecioUnitario,
         double Igv,
         double Subtotal,
         double Total

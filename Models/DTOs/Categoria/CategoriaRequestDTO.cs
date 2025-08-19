@@ -1,9 +1,11 @@
-﻿namespace app_restaurante_backend.Models.DTOs.Categoria
+﻿using System.Text.Json.Serialization;
+
+namespace app_restaurante_backend.Models.DTOs.Categoria
 {
     public record CategoriaRequestDTO(
         string Nombre,
         string Descripcion,
-        double PrecioMinimo
+        [property: JsonPropertyName("precio_minimo")]  double PrecioMinimo
     )
     {
         

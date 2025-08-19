@@ -10,5 +10,6 @@ namespace app_restaurante_backend.Service.Interfaces
         MesaResponseDTO ActualizarMesa(int id, MesaRequestDTO mesa);
         void EliminarMesa(int id);
         MesaResponseDTO CambiarEstadoMesa(int id, MesaEstadoRequestDTO estado);
+        Page<MesaResponseDTO> ObtenerMesasDisponibles(int pageNumber, int pageSize);
     }
 }

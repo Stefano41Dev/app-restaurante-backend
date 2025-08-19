@@ -13,9 +13,25 @@ namespace app_restaurante_backend.Service.Implementations
         {
             _context = context;
         }
+
+        public Page<MesaResponseDTO> ObtenerMesasDisponibles(int pageNumber, int pageSize)
+        {
+            var mesasDisponibles = _context.Mesas
+                .Where(m=> m.Estado == EstadoMesa.LIBRE && m.Activo == true)
+                .Select(m => new MesaResponseDTO
+                (
+                    m.Id,
+                    m.Numero!,
+                    m.Capacidad ?? 0,
+                    m.Estado.ToString()
+                ));
+            return mesasDisponibles.Paginate(pageNumber, pageSize);
+           
+        }
+
         MesaResponseDTO IMesaService.ActualizarMesa(int id, MesaRequestDTO mesaDTO)
         {
-            var mesaBuscada = _context.Mesas.FirstOrDefault(m => m.Id == id);
+            var mesaBuscada = _context.Mesas.FirstOrDefault(m => m.Id == id && m.Activo == true);
             if (mesaBuscada == null)
             {
                 throw new Exception("No se encontro la mesa");
@@ -32,14 +48,16 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 throw new Exception("Estado de mesa no valido");
             }
-            if (_context.Mesas.Any(m => m.Numero == mesaDTO.Numero))
+            if (_context.Mesas.Any(m => m.Numero == mesaDTO.Numero && m.Activo == true))
+            
+            if (mesaBuscada.Estado != EstadoMesa.LIBRE)
             {
-                throw new Exception("Ya existe una mesa con ese numero");
+                throw new Exception("No se puede actualizar una mesa que no esta libre");
             }
             mesaBuscada.Numero = mesaDTO.Numero;
             mesaBuscada.Capacidad = mesaDTO.Capacidad;
             mesaBuscada.Estado = Enum.Parse<EstadoMesa>(mesaDTO.Estado, true);
-
+           
             _context.Mesas.Update(mesaBuscada);
             if (_context.SaveChanges() > 0)
             {
@@ -48,7 +66,7 @@ namespace app_restaurante_backend.Service.Implementations
                     mesaBuscada.Id,
                     mesaBuscada.Numero!,
                     mesaBuscada.Capacidad ?? 0,
-                    mesaBuscada.Estado
+                    mesaBuscada.Estado.ToString()
                 );
             }
             else
@@ -71,7 +89,7 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 throw new Exception("Estado de mesa no valido");
             }
-            if (_context.Mesas.Any(m => m.Numero == mesaDto.Numero))
+            if (_context.Mesas.Any(m => m.Numero == mesaDto.Numero && m.Activo == true))
             {
                 throw new Exception("Ya existe una mesa con ese numero");
             }
@@ -79,7 +97,8 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 Numero = mesaDto.Numero,
                 Capacidad = mesaDto.Capacidad,
-                Estado = Enum.Parse<EstadoMesa>(mesaDto.Estado, true)
+                Estado = Enum.Parse<EstadoMesa>(mesaDto.Estado, true),
+                Activo = true
             };
             _context.Mesas.Add(nuevaMesa);
             if (_context.SaveChanges() > 0)
@@ -89,7 +108,7 @@ namespace app_restaurante_backend.Service.Implementations
                     nuevaMesa.Id,
                     nuevaMesa.Numero!,
                     nuevaMesa.Capacidad ?? 0,
-                    nuevaMesa.Estado
+                    nuevaMesa.Estado.ToString()
                 );
             }
             else
@@ -101,7 +120,7 @@ namespace app_restaurante_backend.Service.Implementations
 
         MesaResponseDTO IMesaService.CambiarEstadoMesa(int id, MesaEstadoRequestDTO estado)
         {
-            var mesaBuscada = _context.Mesas.FirstOrDefault(m => m.Id == id);
+            var mesaBuscada = _context.Mesas.FirstOrDefault(m => m.Id == id && m.Activo == true);
             if (mesaBuscada == null)
             {
                 throw new Exception("No se encontro la mesa");
@@ -119,7 +138,7 @@ namespace app_restaurante_backend.Service.Implementations
                     mesaBuscada.Id,
                     mesaBuscada.Numero!,
                     mesaBuscada.Capacidad ?? 0,
-                    mesaBuscada.Estado
+                    mesaBuscada.Estado.ToString()
                 );
             }
             else
@@ -130,12 +149,17 @@ namespace app_restaurante_backend.Service.Implementations
 
         void IMesaService.EliminarMesa(int id)
         {
-            var mesaBuscada = _context.Mesas.FirstOrDefault(m => m.Id == id);
+            var mesaBuscada = _context.Mesas.FirstOrDefault(m => m.Id == id && m.Activo == true);
             if (mesaBuscada == null)
             {
                 throw new Exception("No se encontro la mesa");
             }
-            _context.Mesas.Remove(mesaBuscada);
+            if(mesaBuscada.Estado != EstadoMesa.LIBRE)
+            {
+                throw new Exception("No se puede eliminar una mesa que no esta libre");
+            }
+            mesaBuscada.Activo = false;
+            _context.Mesas.Update(mesaBuscada);
             if (_context.SaveChanges() <= 0)
             {
                 throw new Exception("No se pudo eliminar la mesa");
@@ -144,13 +168,13 @@ namespace app_restaurante_backend.Service.Implementations
 
         MesaResponseDTO IMesaService.ObtenerMesa(int id)
         {
-            var mesa = _context.Mesas.Where(m => m.Id == id)
+            var mesa = _context.Mesas.Where(m => m.Id == id && m.Activo == true)
                 .Select(m => new MesaResponseDTO
                 (
                     m.Id,
                     m.Numero!,
                     m.Capacidad ?? 0,
-                    m.Estado 
+                    m.Estado.ToString()    
                 )).FirstOrDefault();
             if(mesa == null)
             {
@@ -161,12 +185,14 @@ namespace app_restaurante_backend.Service.Implementations
 
         Page<MesaResponseDTO> IMesaService.ObtenerMesas(int pageNumber, int pageSize)
         {
-            var Mesas = _context.Mesas.Select(m => new MesaResponseDTO
+            var Mesas = _context.Mesas
+                .Where(m => m.Activo == true)
+                .Select(m => new MesaResponseDTO
             (
                 m.Id,
                 m.Numero!,
                 m.Capacidad ?? 0,
-                m.Estado 
+                m.Estado.ToString() 
             ));
             return Mesas.Paginate(pageNumber, pageSize);
         }

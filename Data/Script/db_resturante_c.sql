@@ -33,6 +33,7 @@ CREATE TABLE mesas
     numero    varchar(255),
     capacidad smallint,
     estado    varchar(255),
+    activo    bit,
     CONSTRAINT pk_mesas PRIMARY KEY (id)
 )
 GO

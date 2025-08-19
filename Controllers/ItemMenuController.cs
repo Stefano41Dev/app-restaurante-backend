@@ -1,6 +1,7 @@
-﻿using app_restaurante_backend.Service.Implementations;
+﻿using app_restaurante_backend.Models.DTOs.ItemMenu;
+using app_restaurante_backend.Service.Implementations;
 using app_restaurante_backend.Service.Interfaces;
-using app_restaurante_backend.Models.DTOs.ItemMenu;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -9,6 +10,7 @@ namespace app_restaurante_backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ItemMenuController : ControllerBase
     {
         private readonly IItemMenuService _itemMenuService;
@@ -48,7 +50,7 @@ namespace app_restaurante_backend.Controllers
             return Ok("Se elimino correctamente el item del menu");
         }
         [HttpPut("{id}")]
-        public IActionResult ActualizarItemMenu([FromQuery] int id, [FromBody] ItemMenuRequestDTO itemMenu)
+        public IActionResult ActualizarItemMenu([FromRoute] int id, [FromBody] ItemMenuRequestDTO itemMenu)
         {
             return Ok(_itemMenuService.ActualizarItemMenu(id, itemMenu));
         }

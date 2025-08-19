@@ -1,18 +1,21 @@
-﻿using app_restaurante_backend.Service.Interfaces;
+﻿using app_restaurante_backend.Models.DTOs.Mesa;
+using app_restaurante_backend.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using app_restaurante_backend.Models.DTOs.Mesa;
 using Microsoft.AspNetCore.Mvc;
 
 namespace app_restaurante_backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class MesaController : ControllerBase
     {
         private readonly IMesaService _mesaService;
         public MesaController(IMesaService mesaService)
         {
-         _mesaService = mesaService;
+            _mesaService = mesaService;
         }
         [HttpGet]
         public IActionResult ObtenerMesas(int pageNumber = 1, int pageSize = 10)
@@ -21,7 +24,7 @@ namespace app_restaurante_backend.Controllers
             return Ok(mesas);
         }
         [HttpGet("{id}")]
-        public IActionResult ObtenerMesa([FromRoute]int id)
+        public IActionResult ObtenerMesa([FromRoute] int id)
         {
             var mesa = _mesaService.ObtenerMesa(id);
             if (mesa == null)
@@ -33,7 +36,7 @@ namespace app_restaurante_backend.Controllers
         [HttpPost]
         public IActionResult AgregarMesa([FromBody] MesaRequestDTO mesa)
         {
-           return Ok(_mesaService.AgregarMesa(mesa));
+            return Ok(_mesaService.AgregarMesa(mesa));
         }
         [HttpPut("{id}")]
         public IActionResult ActualizarMesa([FromRoute] int id, [FromBody] MesaRequestDTO mesa)
@@ -47,9 +50,14 @@ namespace app_restaurante_backend.Controllers
             return NoContent();
         }
         [HttpPatch("{id}")]
-        public IActionResult CambiarEstadoMesa([FromRoute]int id, [FromBody] MesaEstadoRequestDTO estado)
+        public IActionResult CambiarEstadoMesa([FromRoute] int id, [FromBody] MesaEstadoRequestDTO estado)
         {
             return Ok(_mesaService.CambiarEstadoMesa(id, estado));
+        }
+        [HttpGet("disponibles")]
+        public IActionResult ObtenerMesasDisponibles(int pageNumber = 1, int pageSize = 10)
+        {
+            return Ok(_mesaService.ObtenerMesasDisponibles(pageNumber, pageSize));
         }
     }
 }
