@@ -6,8 +6,8 @@ namespace app_restaurante_backend.Service.Interfaces
     public interface IOrdenService
     {
         OrdenResponseDto CrearOrden(OrdenRequestDto requestDto);
-        Page<OrdenResponseDto> ListaOrdenes();
+        Page<OrdenResponseDto> ListaOrdenes(int NumberPage,int SizePage);
         OrdenResponseDto ObtenerOrden(long id);
-        OrdenResponseDto ActualizarEstado(OrdenEstadoRequestDto requestDto);
+        OrdenResponseDto ActualizarEstado(long id,OrdenEstadoRequestDto requestDto);
     }
 }
