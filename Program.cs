@@ -66,6 +66,7 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IItemMenuService, ItemMenuService>();
 builder.Services.AddScoped<IMesaService, MesaService>();
 builder.Services.AddScoped<IOrdenService, OrdenService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

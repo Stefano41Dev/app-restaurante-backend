@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace app_restaurante_backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/ordenes")]
     [ApiController]
     [Authorize]
 
@@ -86,6 +86,16 @@ namespace app_restaurante_backend.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+        [HttpGet("por-mesa-pendiente/{idMesa}")]
+        public IActionResult ObtenerOrdenPendientePorMesa([FromRoute] short idMesa)
+        {
+            return Ok(_service.ObtenerOrdenPendientePorMesa(idMesa));
+        }
+        [HttpPatch("pagar/{id}")]
+        public IActionResult MarcarOrdenPagada([FromRoute] long id)
+        {
+            return Ok(_service.MarcarOrdenPagada(id));
         }
     }
 }

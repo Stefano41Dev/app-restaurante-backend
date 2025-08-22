@@ -11,6 +11,8 @@ namespace app_restaurante_backend.Service.Interfaces
         OrdenResponseDto ActualizarEstado(long id,OrdenEstadoRequestDto requestDto);
         OrdenResponseDto ActualizarOrden(long id, OrdenActualizarRequestDTO requestDto);
         Page<OrdenResponseDto> ListaOrdenes(int NumberPage, int SizePage);
+        OrdenResponseDto ObtenerOrdenPendientePorMesa (short idMesa);
+        OrdenResponseDto MarcarOrdenPagada(long id);
         void DesactivarOrdenes();
     }
 }

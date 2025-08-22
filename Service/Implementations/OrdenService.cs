@@ -35,16 +35,24 @@ namespace app_restaurante_backend.Service.Implementations
                 throw new Exception("Estado de orden no válido.");
 
 
-            if (orden.Estado == EstadoOrden.COMPLETADA || orden.Estado == EstadoOrden.CANCELADA)
-                throw new Exception("No se puede modificar una orden finalizada o cancelada.");
+            if (orden.Estado == EstadoOrden.ENTREGADA || orden.Estado == EstadoOrden.CANCELADA)
+                throw new Exception("No se puede modificar una orden entregada o cancelada.");
+            
+            if(orden.Estado == EstadoOrden.COMPLETADA && requestDto.EstadoOrden != EstadoOrden.EN_REPARTO.ToString())
+                throw new Exception("No se puede cambiar el estado de una orden completada a un estado diferente de 'En Reparto'.");
 
+            if(orden.Estado == EstadoOrden.EN_REPARTO && requestDto.EstadoOrden != EstadoOrden.ENTREGADA.ToString())
+                throw new Exception("No se puede cambiar el estado de una orden en reparto a un estado diferente de 'Entregada'.");
+
+            if(orden.Estado == EstadoOrden.PAGADA)
+                throw new Exception("No se puede cambiar el estado de una orden que ya ha sido pagada.");
 
             if (orden.Estado == nuevoEstado)
                 throw new Exception("La orden ya se encuentra en ese estado.");
 
             orden.Estado = nuevoEstado;
 
-            if (nuevoEstado == EstadoOrden.COMPLETADA || nuevoEstado == EstadoOrden.CANCELADA)
+            if (nuevoEstado == EstadoOrden.CANCELADA)
             {
                 // Liberar la mesa
                 if (orden.Mesa != null)
@@ -387,6 +395,88 @@ namespace app_restaurante_backend.Service.Implementations
             else
             {
                 throw new Exception("No hay órdenes activas para desactivar.");
+            }
+        }
+        public OrdenResponseDto ObtenerOrdenPendientePorMesa(short idMesa)
+        {
+          var orden = _context.Ordenes
+                .Where(o => o.MesaId == idMesa && o.Estado == EstadoOrden.PENDIENTE && o.Activo == true)
+                .Include(o => o.Mesa)
+                .Include(o => o.DetalleOrdenes)
+                .ThenInclude(d => d.Plato)
+                .Select(o => new OrdenResponseDto(
+                    o.Id,
+                    o.CodigoOrden ?? string.Empty,
+                    o.MesaId,
+                    o.Mesa.Numero,
+                    o.Estado.ToString() ?? string.Empty,
+                    o.FechaCreacion ?? DateTime.UtcNow,
+                    o.HoraCreacion ?? TimeSpan.Zero,
+                    o.MontoSubtotal ?? 0,
+                    o.MontoTotal ?? 0,
+                    o.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
+                        d.Id,
+                        d.Plato.Nombre ?? string.Empty,
+                        d.Cantidad ?? 0,
+                        d.PrecioUnitario ?? 0,
+                        d.Igv ?? 0,
+                        d.Subtotal ?? 0,
+                        d.Total ?? 0
+                    )).ToList()
+                )).FirstOrDefault();
+            if (orden == null)
+            {
+                throw new Exception("No se encontró una orden pendiente para la mesa especificada.");
+            }
+            return orden;
+        }
+        public OrdenResponseDto MarcarOrdenPagada(long id)
+        {
+            var orden = _context.Ordenes
+                .Include(o=>o.Mesa)
+                .Include(o => o.DetalleOrdenes)
+                .ThenInclude(d => d.Plato)
+                .FirstOrDefault(o => o.Id == id);
+            if (orden == null)
+            {
+                throw new Exception("No se encontro la orden");
+            }
+            if(orden.Estado != EstadoOrden.ENTREGADA)
+            {
+                throw new Exception("Solo se pueden pagar ordenes que han sido entregadas");
+            }
+            
+            orden.Mesa.Estado = EstadoMesa.LIBRE;
+            orden.Estado = EstadoOrden.PAGADA;
+            _context.Ordenes.Update(orden);
+
+            if (_context.SaveChanges() > 0)
+            {
+
+                return new OrdenResponseDto(
+                 orden.Id,
+                 orden.CodigoOrden ?? string.Empty,
+                 orden.MesaId,
+                 orden.Mesa.Numero,
+                 orden.Estado.ToString(),
+                 orden.FechaCreacion ?? DateTime.UtcNow,
+                 orden.HoraCreacion ?? TimeSpan.Zero,
+                 orden.MontoSubtotal ?? 0,
+                 orden.MontoTotal ?? 0,
+                 orden.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
+                     d.Id,
+                     d.Plato.Nombre ?? string.Empty,
+                     d.Cantidad ?? 0,
+                     d.PrecioUnitario ?? 0,
+                     d.Igv ?? 0,
+                     d.Subtotal ?? 0,
+                     d.Total ?? 0
+                 )).ToList()
+             );
+            }
+            else
+            {
+                throw new Exception("No se pudo completar el pago");
             }
         }
     }

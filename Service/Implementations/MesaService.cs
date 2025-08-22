@@ -4,6 +4,7 @@ using EntityFrameworkPaginateCore;
 using app_restaurante_backend.Data;
 using app_restaurante_backend.Models.Enums.Ordenes;
 using app_restaurante_backend.Models.Entidades;
+using Microsoft.EntityFrameworkCore;
 namespace app_restaurante_backend.Service.Implementations
 {
     public class MesaService : IMesaService
@@ -195,6 +196,24 @@ namespace app_restaurante_backend.Service.Implementations
                 m.Estado.ToString() 
             ));
             return Mesas.Paginate(pageNumber, pageSize);
+        }
+        public Page<MesaResponseDTO> ObtenerMesasConOrdenPendiente(int pageNumber, int pageSize)
+        {
+            var mesas = _context.Ordenes
+                .Include(o=>o.Mesa)
+                .Where(o=>o.Estado == EstadoOrden.PENDIENTE && o.Activo == true && o.Mesa.Activo == true)
+                .Select(m => new MesaResponseDTO
+                (
+                    m.Mesa.Id,
+                    m.Mesa.Numero!,
+                    m.Mesa.Capacidad ?? 0,
+                    m.Mesa.Estado.ToString()
+                ));
+            if (!mesas.Any())
+            {
+                throw new Exception("No se encontraron mesas con orden pendiente");
+            }
+            return mesas.Paginate(pageNumber,pageSize);
         }
     }
 }

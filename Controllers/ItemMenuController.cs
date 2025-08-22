@@ -8,7 +8,7 @@ using System.Net;
 
 namespace app_restaurante_backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/items-menu")]
     [ApiController]
     [Authorize]
     public class ItemMenuController : ControllerBase
@@ -38,11 +38,12 @@ namespace app_restaurante_backend.Controllers
         {
             return Ok(_itemMenuService.ObtenerItemsMenu(pageNumber, pageSize));
         }
+        /*
         [HttpGet("buscar-por-categoria/")]
         public IActionResult ObtenerItemsMenuPorCategoria([FromQuery] int idCategoria, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
-         {
+        {
             return Ok(_itemMenuService.ObtenerItemsMenuPorCategoria(idCategoria,pageNumber,pageSize));
-        }
+        }*/
         [HttpDelete("{id}")]
         public IActionResult EliminarItemMenu([FromRoute] int id)
         {

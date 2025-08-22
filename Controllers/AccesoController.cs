@@ -1,6 +1,7 @@
 ﻿using app_restaurante_backend.Custom;
 using app_restaurante_backend.Data;
 using app_restaurante_backend.Models.DTOs;
+using app_restaurante_backend.Models.DTOs.Usuario;
 using app_restaurante_backend.Models.Entidades;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace app_restaurante_backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AccesoController : ControllerBase
     {
@@ -21,7 +22,8 @@ namespace app_restaurante_backend.Controllers
             _context = context;
             _utilidades = utilidades;
         }
-
+        
+        /*
         [HttpPost]
         [Route("Registrarse")]
         public async Task<IActionResult> Registrarse([FromBody] UsuarioRequestDTO usuarioDto)
@@ -43,11 +45,11 @@ namespace app_restaurante_backend.Controllers
             if (usuario.Id != 0) { return Ok(new { isSuccess = true, message = "Usuario registrado correctamamente" }); }
             else { return BadRequest(new { isSuccess = false, message = "No se pudo registrar el usuario" }); }
 
-        }
+        }*/
 
         [AllowAnonymous]
         [HttpPost]
-        [Route("IniciarSesion")]
+        [Route("login")]
         public async Task<IActionResult> IniciarSesion([FromBody] LoginRequestDTO loginDto)
         {
             Usuario? usuarioEncontrado = await _context.Usuarios

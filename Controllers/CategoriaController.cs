@@ -6,7 +6,7 @@ using System.Net;
 using Microsoft.AspNetCore.Authorization;
 namespace app_restaurante_backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/categorias")]
     [ApiController]
     [Authorize]
     public class CategoriaController : ControllerBase

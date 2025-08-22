@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace app_restaurante_backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/mesas")]
     [ApiController]
     [Authorize]
 
@@ -58,6 +58,11 @@ namespace app_restaurante_backend.Controllers
         public IActionResult ObtenerMesasDisponibles(int pageNumber = 1, int pageSize = 10)
         {
             return Ok(_mesaService.ObtenerMesasDisponibles(pageNumber, pageSize));
+        }
+        [HttpGet("con-orden-pendiente")]
+        public IActionResult ObtenerMesasOrdenPendiente(int pageNumber = 1, int pageSize=10)
+        {
+            return Ok(_mesaService.ObtenerMesasConOrdenPendiente(pageNumber,pageSize));
         }
     }
 }
