@@ -14,6 +14,7 @@ namespace app_restaurante_backend.Service.Implementations
     public class OrdenService : IOrdenService
     {
         private readonly DbRestauranteContext _context;
+        public static double igv = 0.18;
 
         public OrdenService(DbRestauranteContext context)
         {
@@ -138,9 +139,11 @@ namespace app_restaurante_backend.Service.Implementations
                     Cantidad = d.Cantidad,
                     PrecioUnitario = item.Precio,
                 };
-                detalle.Subtotal = detalle.PrecioUnitario * detalle.Cantidad;
-                detalle.Total = detalle.Subtotal + (detalle.Subtotal * detalle.Igv);
 
+                detalle.Subtotal = detalle.PrecioUnitario * detalle.Cantidad;
+                double montoIgv = (detalle.Subtotal??0) * igv;
+                detalle.Total = detalle.Subtotal + montoIgv;
+                detalle.Igv = montoIgv;
                 orden.MontoSubtotal += detalle.Subtotal;
                 orden.MontoTotal += detalle.Total;
 
@@ -304,7 +307,9 @@ namespace app_restaurante_backend.Service.Implementations
 
                 };
                 detalle.Subtotal = detalle.PrecioUnitario * detalle.Cantidad;
-                detalle.Total = detalle.Subtotal + (detalle.Subtotal * detalle.Igv);
+                double montoIgv = detalle.Subtotal ?? 0 * igv;
+                detalle.Total = detalle.Subtotal + montoIgv;
+                detalle.Igv = montoIgv;
                 orden.MontoSubtotal += detalle.Subtotal;
                 orden.MontoTotal += detalle.Total;
                 orden.DetalleOrdenes.Add(detalle);

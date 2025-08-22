@@ -8,7 +8,7 @@ namespace app_restaurante_backend.Models.DTOs.DetalleOrden
         [property: JsonPropertyName("nombre_item_menu")]  string NombreItem,
         int Cantidad,
         [property: JsonPropertyName("precio_unitario")]   double PrecioUnitario,
-        double Igv,
+        [property: JsonPropertyName("monto_igv")]double Igv,
         double Subtotal,
         double Total
     )
