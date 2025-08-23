@@ -120,21 +120,17 @@ namespace app_restaurante_backend.Service.Implementations
             return resultado!;
         }
 
-        Page<CategoriaResponseDTO> ICategoriaService.ObtenerCategorias(int pageNumber, int pageSize)
+        List<CategoriaResponseDTO> ICategoriaService.ObtenerCategorias()
         {
-            var query = _context.CategoriasItems
-         .Where(b => b.Activo == true)
-         .Select(c => new CategoriaResponseDTO
-         (
-             c.Id,
-             c.Nombre!,
-             c.Descripcion!,
-             c.PrecioMinimo ?? 0
-         ));
-
-            var paginaMapeada = query.Paginate(pageNumber, pageSize);
-
-            return paginaMapeada;
+            return _context.CategoriasItems
+                  .Where(b => b.Activo == true)
+                  .Select(c => new CategoriaResponseDTO
+                  (
+                    c.Id,
+                    c.Nombre!,
+                    c.Descripcion!,
+                    c.PrecioMinimo ?? 0
+                  )).ToList();
         }
     }
 }

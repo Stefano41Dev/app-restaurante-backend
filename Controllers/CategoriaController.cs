@@ -17,9 +17,9 @@ namespace app_restaurante_backend.Controllers
             _categoriaService = categoriaService;
         }
         [HttpGet]
-        public IActionResult ObtenerCategorias([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public IActionResult ObtenerCategorias()
         {
-            var categorias = _categoriaService.ObtenerCategorias(pageNumber, pageSize);
+            var categorias = _categoriaService.ObtenerCategorias();
             return Ok(categorias);
         }
         [HttpPost]

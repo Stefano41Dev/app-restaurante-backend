@@ -5,7 +5,7 @@ namespace app_restaurante_backend.Service.Interfaces
 {
     public interface IUsuarioService
     {
-        Page<UsuarioResponseDTO> ObtenerUsuarios(int numeroPagina, int cantidadElementos);
+        List<UsuarioResponseDTO> ObtenerUsuarios();
         UsuarioResponseDTO ObtenerUsuarioDtoPorCorreo(string correo);
         UsuarioResponseDTO ObtenerUsuarioDtoPorId(int id);
         UsuarioResponseDTO GuardarUsuario(UsuarioRequestDTO usuarioDTORequest);

@@ -18,9 +18,9 @@ namespace app_restaurante_backend.Controllers
             _mesaService = mesaService;
         }
         [HttpGet]
-        public IActionResult ObtenerMesas(int pageNumber = 1, int pageSize = 10)
+        public IActionResult ObtenerMesas()
         {
-            var mesas = _mesaService.ObtenerMesas(pageNumber, pageSize);
+            var mesas = _mesaService.ObtenerMesas();
             return Ok(mesas);
         }
         [HttpGet("{id}")]
@@ -55,14 +55,14 @@ namespace app_restaurante_backend.Controllers
             return Ok(_mesaService.CambiarEstadoMesa(id, estado));
         }
         [HttpGet("disponibles")]
-        public IActionResult ObtenerMesasDisponibles(int pageNumber = 1, int pageSize = 10)
+        public IActionResult ObtenerMesasDisponibles()
         {
-            return Ok(_mesaService.ObtenerMesasDisponibles(pageNumber, pageSize));
+            return Ok(_mesaService.ObtenerMesasDisponibles());
         }
         [HttpGet("con-orden-pendiente")]
-        public IActionResult ObtenerMesasOrdenPendiente(int pageNumber = 1, int pageSize=10)
+        public IActionResult ObtenerMesasOrdenPendiente()
         {
-            return Ok(_mesaService.ObtenerMesasConOrdenPendiente(pageNumber,pageSize));
+            return Ok(_mesaService.ObtenerMesasConOrdenPendiente());
         }
     }
 }

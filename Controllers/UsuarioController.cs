@@ -70,11 +70,11 @@ namespace app_restaurante_backend.Controllers
             }
         }
         [HttpGet]
-        public IActionResult ObtenerUsuarios([FromQuery]int pageNumber = 1,[FromQuery] int pageSize =10)
+        public IActionResult ObtenerUsuarios()
         {
             try
             {
-                var usuarios = _service.ObtenerUsuarios(pageNumber, pageSize);
+                var usuarios = _service.ObtenerUsuarios();
                 return Ok(new { isSuccess = true, data = usuarios });
             }
             catch (Exception ex)

@@ -130,18 +130,16 @@ namespace app_restaurante_backend.Service.Implementations
             );
         }
 
-        public Page<UsuarioResponseDTO> ObtenerUsuarios(int numeroPagina, int cantidadElementos)
-        {
-            var usuarios = _context.Usuarios
+        public List<UsuarioResponseDTO> ObtenerUsuarios()
+        {       
+            return _context.Usuarios
                 .Select(u => new UsuarioResponseDTO(
                    u.Id,
                    u.Nombre,
                    u.Apellido,
                    u.Correo,
                    u.Rol
-                ));
-
-            return usuarios.Paginate(numeroPagina, cantidadElementos);
+                )).ToList(); 
         }
     }
 }

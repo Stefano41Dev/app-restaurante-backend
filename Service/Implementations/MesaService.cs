@@ -15,19 +15,19 @@ namespace app_restaurante_backend.Service.Implementations
             _context = context;
         }
 
-        public Page<MesaResponseDTO> ObtenerMesasDisponibles(int pageNumber, int pageSize)
+        public List<MesaResponseDTO> ObtenerMesasDisponibles()
         {
-            var mesasDisponibles = _context.Mesas
-                .Where(m=> m.Estado == EstadoMesa.LIBRE && m.Activo == true)
+          
+            return _context.Mesas
+                .Where(m => m.Estado == EstadoMesa.LIBRE && m.Activo == true)
                 .Select(m => new MesaResponseDTO
                 (
                     m.Id,
                     m.Numero!,
                     m.Capacidad ?? 0,
                     m.Estado.ToString()
-                ));
-            return mesasDisponibles.Paginate(pageNumber, pageSize);
-           
+                )).ToList();
+
         }
 
         MesaResponseDTO IMesaService.ActualizarMesa(int id, MesaRequestDTO mesaDTO)
@@ -184,20 +184,20 @@ namespace app_restaurante_backend.Service.Implementations
                 return mesa;
         }
 
-        Page<MesaResponseDTO> IMesaService.ObtenerMesas(int pageNumber, int pageSize)
+        List<MesaResponseDTO> IMesaService.ObtenerMesas()
         {
-            var Mesas = _context.Mesas
+           
+            return _context.Mesas
                 .Where(m => m.Activo == true)
                 .Select(m => new MesaResponseDTO
             (
                 m.Id,
                 m.Numero!,
                 m.Capacidad ?? 0,
-                m.Estado.ToString() 
-            ));
-            return Mesas.Paginate(pageNumber, pageSize);
+                m.Estado.ToString()
+            )).ToList();
         }
-        public Page<MesaResponseDTO> ObtenerMesasConOrdenPendiente(int pageNumber, int pageSize)
+        public List<MesaResponseDTO> ObtenerMesasConOrdenPendiente()
         {
             var mesas = _context.Ordenes
                 .Include(o=>o.Mesa)
@@ -208,12 +208,12 @@ namespace app_restaurante_backend.Service.Implementations
                     m.Mesa.Numero!,
                     m.Mesa.Capacidad ?? 0,
                     m.Mesa.Estado.ToString()
-                ));
+                )).ToList();
             if (!mesas.Any())
             {
                 throw new Exception("No se encontraron mesas con orden pendiente");
             }
-            return mesas.Paginate(pageNumber,pageSize);
+            return mesas;
         }
     }
 }
