@@ -23,7 +23,7 @@ namespace app_restaurante_backend.Controllers
         {
            
                 UsuarioResponseDTO usuarioResponse = _service.GuardarUsuario(usuarioDTORequest);
-                return Ok( usuarioResponse );
+                return Ok( usuarioResponse);
            
         }
         [HttpGet("me")]
