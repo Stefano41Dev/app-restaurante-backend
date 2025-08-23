@@ -21,15 +21,10 @@ namespace app_restaurante_backend.Controllers
         [HttpPost]
         public IActionResult GuardarUsuario([FromBody] UsuarioRequestDTO usuarioDTORequest)
         {
-            try
-            {
+           
                 UsuarioResponseDTO usuarioResponse = _service.GuardarUsuario(usuarioDTORequest);
-                return Ok(new { isSuccess = true, message = "Usuario registrado correctamente", data = usuarioResponse });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { isSuccess = false, message = ex.Message });
-            }
+                return Ok( usuarioResponse );
+           
         }
         [HttpGet("me")]
         public ActionResult ObtenerUsuarioAutenticado()
@@ -59,54 +54,30 @@ namespace app_restaurante_backend.Controllers
         [HttpPut("{id}")]
         public IActionResult ActualizarUsuario([FromRoute]int id, [FromBody] UsuarioRequestDTO usuarioDTORequest)
         {
-            try
-            {
+   
                 UsuarioResponseDTO usuarioResponse = _service.ActualizarUsuario(id, usuarioDTORequest);
-                return Ok(new { isSuccess = true, message = "Usuario actualizado correctamente", data = usuarioResponse });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { isSuccess = false, message = ex.Message });
-            }
+                return Ok( usuarioResponse);
+
         }
         [HttpGet]
         public IActionResult ObtenerUsuarios()
         {
-            try
-            {
                 var usuarios = _service.ObtenerUsuarios();
-                return Ok(new { isSuccess = true, data = usuarios });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { isSuccess = false, message = ex.Message });
-            }
+                return Ok( usuarios );   
         }
         [HttpGet("{id}")]
         public IActionResult ObtenerUsuarioPorId([FromRoute] int id)
-        {
-            try
-            {
+        {         
                 UsuarioResponseDTO usuarioResponse = _service.ObtenerUsuarioDtoPorId(id);
-                return Ok(new { isSuccess = true, data = usuarioResponse });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { isSuccess = false, message = ex.Message });
-            }
+                return Ok(usuarioResponse);          
         }
         [HttpDelete("{id}")]
         public IActionResult EliminarUsuario([FromRoute] int id)
         {
-            try
-            {
+            
                 _service.EliminarUsuario(id);
-                return Ok(new { isSuccess = true, message = "Usuario eliminado correctamente" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { isSuccess = false, message = ex.Message });
-            }
+                return Ok( "Usuario eliminado correctamente");
+           
         }
     }
 }

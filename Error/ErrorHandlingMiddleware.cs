@@ -18,7 +18,7 @@
             catch (Exception ex)
             {
                 context.Response.ContentType = "application/json";
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
 
                 var errorDto = new ErrorResponseDTO
                 {
