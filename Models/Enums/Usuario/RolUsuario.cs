@@ -3,7 +3,7 @@
     public enum RolUsuario
     {
         Administrador,
-        Mesero,
-        Cocinero
+        Cajero,
+        Camarero
     }
 }

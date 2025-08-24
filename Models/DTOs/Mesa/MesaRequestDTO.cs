@@ -2,10 +2,6 @@
 {
     public record MesaRequestDTO(
         string Numero,
-        short Capacidad,
-        string Estado
-        )
-    {
-
-    }
+        short Capacidad
+    ){ }
 }

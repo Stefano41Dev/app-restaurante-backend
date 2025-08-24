@@ -5,14 +5,19 @@ using app_restaurante_backend.Data;
 using app_restaurante_backend.Models.Enums.Ordenes;
 using app_restaurante_backend.Models.Entidades;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
+
 namespace app_restaurante_backend.Service.Implementations
 {
     public class MesaService : IMesaService
     {
         private readonly DbRestauranteContext _context;
-        public MesaService(DbRestauranteContext context)
+        private readonly ILogger<MesaService> _logger;
+
+        public MesaService(DbRestauranteContext context, ILogger<MesaService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public List<MesaResponseDTO> ObtenerMesasDisponibles()
@@ -45,10 +50,6 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 throw new Exception("La capacidad de la mesa no puede ser menor a 1");
             }
-            if (!Enum.IsDefined(typeof(EstadoMesa), mesaDTO.Estado))
-            {
-                throw new Exception("Estado de mesa no valido");
-            }
             if (_context.Mesas.Any(m => m.Numero == mesaDTO.Numero && m.Activo == true))
             
             if (mesaBuscada.Estado != EstadoMesa.LIBRE)
@@ -57,7 +58,6 @@ namespace app_restaurante_backend.Service.Implementations
             }
             mesaBuscada.Numero = mesaDTO.Numero;
             mesaBuscada.Capacidad = mesaDTO.Capacidad;
-            mesaBuscada.Estado = Enum.Parse<EstadoMesa>(mesaDTO.Estado, true);
            
             _context.Mesas.Update(mesaBuscada);
             if (_context.SaveChanges() > 0)
@@ -78,17 +78,18 @@ namespace app_restaurante_backend.Service.Implementations
 
         MesaResponseDTO IMesaService.AgregarMesa(MesaRequestDTO mesaDto)
         {
-            if(string.IsNullOrEmpty(mesaDto.Numero))
+
+            Debug.WriteLine(mesaDto);
+            _logger.LogInformation("Mesa DTO: {@mesaDto}", mesaDto);
+
+          
+            if (string.IsNullOrEmpty(mesaDto.Numero))
             {
                 throw new Exception("El numero de la mesa no puede estar vacio");
             }
             if(mesaDto.Capacidad < 1)
             {
                 throw new Exception("La capacidad de la mesa no puede ser menor a 1");
-            }
-            if (!Enum.IsDefined(typeof(EstadoMesa), mesaDto.Estado))
-            {
-                throw new Exception("Estado de mesa no valido");
             }
             if (_context.Mesas.Any(m => m.Numero == mesaDto.Numero && m.Activo == true))
             {
@@ -98,8 +99,9 @@ namespace app_restaurante_backend.Service.Implementations
             {
                 Numero = mesaDto.Numero,
                 Capacidad = mesaDto.Capacidad,
-                Estado = Enum.Parse<EstadoMesa>(mesaDto.Estado, true),
+                Estado = EstadoMesa.LIBRE,
                 Activo = true
+                
             };
             _context.Mesas.Add(nuevaMesa);
             if (_context.SaveChanges() > 0)
