@@ -6,7 +6,7 @@ namespace app_restaurante_backend.Models.DTOs.Usuario
         string Nombre,
         string Apellido,
         string Correo,
-        string Clave,
+        string? Clave,
         RolUsuario Rol
     );
 }

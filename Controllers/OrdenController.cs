@@ -4,6 +4,7 @@ using app_restaurante_backend.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System.Threading.Tasks;
 
 namespace app_restaurante_backend.Controllers
 {
@@ -44,14 +45,18 @@ namespace app_restaurante_backend.Controllers
         }
 
         [HttpGet("hoy")]
-        public IActionResult ObtenerOrdenesDeHoy([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public IActionResult ObtenerOrdenesDeHoy(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] List<string>? estado = null
+        )
         {
-            var ordenes = _service.ListaOrdenesDeHoy(pageNumber, pageSize);
+            var ordenes = _service.ListaOrdenesDeHoy(pageNumber, pageSize, estado);
             return Ok(ordenes);
         }
 
         [HttpGet("{id}")]
-        public IActionResult PbtenerOrden([FromRoute] long id)
+        public IActionResult ObtenerOrden([FromRoute] long id)
         {
             OrdenResponseDto? orden = _service.ObtenerOrden(id);
             if (orden == null)
@@ -64,7 +69,7 @@ namespace app_restaurante_backend.Controllers
         [HttpPatch("cambiar-estado/{id}")]
         public async Task<IActionResult> CambiarEstadoOrden([FromRoute] int id, [FromBody] OrdenEstadoRequestDto estado)
         {
-            OrdenResponseDto? orden = _service.ActualizarEstado(id, estado);
+            OrdenResponseDto? orden = await _service.ActualizarEstado(id, estado);
             await _hubContext.Clients.All.SendAsync("ActualizarEstadoOrden", orden);
             return Ok(orden);
         }
@@ -90,7 +95,7 @@ namespace app_restaurante_backend.Controllers
             try
             {
                 _service.DesactivarOrdenes();
-                return Ok("Todas las ordenes han sido desactivadas correctamente.");
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -105,9 +110,9 @@ namespace app_restaurante_backend.Controllers
         }
 
         [HttpPatch("pagar/{id}")]
-        public IActionResult MarcarOrdenPagada([FromRoute] long id)
+        public async Task<IActionResult> MarcarOrdenPagada([FromRoute] long id)
         {
-            return Ok(_service.MarcarOrdenPagada(id));
+            return Ok(await _service.MarcarOrdenPagada(id));
         }
 
     }

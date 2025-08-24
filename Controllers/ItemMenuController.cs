@@ -61,7 +61,7 @@ namespace app_restaurante_backend.Controllers
         {
             _itemMenuService.EliminarItemMenu(id);
             await _hubContext.Clients.All.SendAsync("EliminarItemMenu", id);
-            return Ok("Se elimino correctamente el item del menu");
+            return NoContent();
         }
 
         [HttpPut("{id}")]

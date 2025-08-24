@@ -87,7 +87,7 @@ namespace app_restaurante_backend.Controllers
             
             _service.EliminarUsuario(id);
             await _hubContext.Clients.All.SendAsync("UsuarioEliminado", id);
-            return Ok( "Usuario eliminado correctamente");
+            return NoContent();
            
         }
     }

@@ -1,27 +1,30 @@
-﻿using app_restaurante_backend.Data;
-using app_restaurante_backend.Models.DTOs.Categoria;
+﻿using app_restaurante_backend.Custom;
+using app_restaurante_backend.Data;
 using app_restaurante_backend.Models.DTOs.DetalleOrden;
+using app_restaurante_backend.Models.DTOs.Mesa;
 using app_restaurante_backend.Models.DTOs.Orden;
 using app_restaurante_backend.Models.Entidades;
 using app_restaurante_backend.Models.Enums.Ordenes;
 using app_restaurante_backend.Service.Interfaces;
 using EntityFrameworkPaginateCore;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace app_restaurante_backend.Service.Implementations
 {
     public class OrdenService : IOrdenService
     {
         private readonly DbRestauranteContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
         public static double igv = 0.18;
 
-        public OrdenService(DbRestauranteContext context)
+        public OrdenService(DbRestauranteContext context, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
-        public OrdenResponseDto ActualizarEstado(long id, OrdenEstadoRequestDto requestDto)
+        public async Task<OrdenResponseDto> ActualizarEstado(long id, OrdenEstadoRequestDto requestDto)
         {
             var orden = _context.Ordenes
                 .Include(o => o.Mesa)
@@ -53,26 +56,36 @@ namespace app_restaurante_backend.Service.Implementations
 
             orden.Estado = nuevoEstado;
 
-            if (nuevoEstado == EstadoOrden.CANCELADA)
+            if (nuevoEstado == EstadoOrden.CANCELADA || nuevoEstado == EstadoOrden.PAGADA)
             {
                 // Liberar la mesa
                 if (orden.Mesa != null)
                 {
                     orden.Mesa.Estado = EstadoMesa.LIBRE;
+                    MesaResponseDTO mesaDto = new(
+                        orden.Mesa.Id,
+                        orden.Mesa.Numero!,
+                        orden.Mesa.Capacidad,
+                        orden.Mesa.Estado.ToString()
+                    );
                     _context.Mesas.Update(orden.Mesa);
+                    await _hubContext.Clients.All.SendAsync("ActualizarMesa", mesaDto);
                 }
-                orden.Activo = false;
+                if (nuevoEstado == EstadoOrden.CANCELADA)
+                {
+                    orden.Activo = false;
+                }
             }
 
             _context.Ordenes.Update(orden);
             _context.SaveChanges();
 
-            return new OrdenResponseDto(
+            OrdenResponseDto ordenResponseDto = new OrdenResponseDto(
                 orden.Id,
                 orden.CodigoOrden ?? string.Empty,
                 orden.MesaId,
-                orden.Mesa.Numero,
-                orden.Estado.ToString(),
+                orden.Mesa!.Numero!,
+                orden.Estado.ToString()!,
                 orden.FechaCreacion ?? DateTime.UtcNow,
                 orden.HoraCreacion ?? TimeSpan.Zero,
                 orden.MontoSubtotal ?? 0,
@@ -87,6 +100,10 @@ namespace app_restaurante_backend.Service.Implementations
                     d.Total ?? 0
                 )).ToList()
             );
+
+            await _hubContext.Clients.All.SendAsync("ActualizarEstadoOrden", ordenResponseDto);
+
+            return ordenResponseDto;
         }
         public OrdenResponseDto CrearOrden(OrdenRequestDto requestDto)
         {
@@ -192,14 +209,24 @@ namespace app_restaurante_backend.Service.Implementations
                 throw new Exception("No se pudo crear la orden");
             }
         }
-        public Page<OrdenResponseDto> ListaOrdenesDeHoy(int pageNumber, int pageSize)
+
+        public Page<OrdenResponseDto> ListaOrdenesDeHoy(int pageNumber, int pageSize, List<string> estados)
         {
             var hoy = DateTime.Now.Date;
 
-            var ordenes = _context.Ordenes
+            var query = _context.Ordenes
+                .Include(o => o.Mesa)
+                .Where(o => o.Activo == true && o.FechaCreacion.HasValue && o.FechaCreacion.Value.Date == hoy);
+
+            if (estados != null && estados.Any())
+            {
+                var estadosEnum = estados.Select(s => Enum.Parse<EstadoOrden>(s, true)).ToList();
+                query = query.Where(o => estadosEnum.Contains((EstadoOrden)o.Estado!));
+            }
+
+            var ordenes = query
                 .Include(o => o.DetalleOrdenes)
                 .ThenInclude(d => d.Plato)
-                .Where(o => o.FechaCreacion.HasValue && o.FechaCreacion.Value.Date == hoy)
                 .Select(o => new OrdenResponseDto(
                     o.Id,
                     o.CodigoOrden ?? string.Empty,
@@ -223,6 +250,7 @@ namespace app_restaurante_backend.Service.Implementations
 
             return ordenes.Paginate(pageNumber, pageSize);
         }
+
         public OrdenResponseDto ObtenerOrden(long id)
         {
             var Orden = _context.Ordenes
@@ -435,7 +463,7 @@ namespace app_restaurante_backend.Service.Implementations
             }
             return orden;
         }
-        public OrdenResponseDto MarcarOrdenPagada(long id)
+        public async Task<OrdenResponseDto> MarcarOrdenPagada(long id)
         {
             var orden = _context.Ordenes
                 .Include(o=>o.Mesa)
@@ -452,32 +480,40 @@ namespace app_restaurante_backend.Service.Implementations
             }
             
             orden.Mesa.Estado = EstadoMesa.LIBRE;
+            MesaResponseDTO mesaDto = new(
+                orden.Mesa.Id,
+                orden.Mesa.Numero!,
+                orden.Mesa.Capacidad,
+                orden.Mesa.Estado.ToString()
+            );
+            await _hubContext.Clients.All.SendAsync("ActualizarMesa", mesaDto);
             orden.Estado = EstadoOrden.PAGADA;
             _context.Ordenes.Update(orden);
 
             if (_context.SaveChanges() > 0)
             {
-
-                return new OrdenResponseDto(
-                 orden.Id,
-                 orden.CodigoOrden ?? string.Empty,
-                 orden.MesaId,
-                 orden.Mesa.Numero,
-                 orden.Estado.ToString(),
-                 orden.FechaCreacion ?? DateTime.UtcNow,
-                 orden.HoraCreacion ?? TimeSpan.Zero,
-                 orden.MontoSubtotal ?? 0,
-                 orden.MontoTotal ?? 0,
-                 orden.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
-                     d.Id,
-                     d.Plato.Nombre ?? string.Empty,
-                     d.Cantidad ?? 0,
-                     d.PrecioUnitario ?? 0,
-                     d.Igv ?? 0,
-                     d.Subtotal ?? 0,
-                     d.Total ?? 0
-                 )).ToList()
-             );
+                OrdenResponseDto ordenResponseDto = new(
+                     orden.Id,
+                     orden.CodigoOrden ?? string.Empty,
+                     orden.MesaId,
+                     orden.Mesa.Numero,
+                     orden.Estado.ToString(),
+                     orden.FechaCreacion ?? DateTime.UtcNow,
+                     orden.HoraCreacion ?? TimeSpan.Zero,
+                     orden.MontoSubtotal ?? 0,
+                     orden.MontoTotal ?? 0,
+                     orden.DetalleOrdenes.Select(d => new DetalleOrdenResponseDto(
+                         d.Id,
+                         d.Plato.Nombre ?? string.Empty,
+                         d.Cantidad ?? 0,
+                         d.PrecioUnitario ?? 0,
+                         d.Igv ?? 0,
+                         d.Subtotal ?? 0,
+                         d.Total ?? 0
+                     )).ToList()
+                 );
+                await _hubContext.Clients.All.SendAsync("ActualizarEstadoOrden", ordenResponseDto);
+                return ordenResponseDto;
             }
             else
             {

@@ -14,7 +14,7 @@ namespace app_restaurante_backend.Models.DTOs.Orden
         [property:JsonPropertyName("hora_creacion")]TimeSpan HoraCreacion,
         [property:JsonPropertyName("monto_sub_total")]double MontoSubtotal,
         [property:JsonPropertyName("monto_total")]double MontoTotal,
-        List<DetalleOrdenResponseDto> detalles
+        List<DetalleOrdenResponseDto> Detalles
     )
     {
     }

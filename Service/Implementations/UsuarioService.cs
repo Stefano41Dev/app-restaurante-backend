@@ -17,18 +17,22 @@ namespace app_restaurante_backend.Service.Implementations
             _context = context;
             _utilidades = utilidades;
         }
+
         public UsuarioResponseDTO ActualizarUsuario(int id, UsuarioRequestDTO usuarioDTORequest)
         {
             var usuario = _context.Usuarios
                 .FirstOrDefault(u => u.Id == id);
-            if(usuario == null)
+            if (usuario == null)
             {
                 throw new Exception("Usuario no encontrado");
             }
             usuario.Nombre = usuarioDTORequest.Nombre;
             usuario.Apellido = usuarioDTORequest.Apellido;
             usuario.Correo = usuarioDTORequest.Correo;
-            usuario.Clave = _utilidades.EncriptarSHA256(usuarioDTORequest.Clave);
+            if (!string.IsNullOrWhiteSpace(usuarioDTORequest.Clave))
+            {
+                usuario.Clave = _utilidades.EncriptarSHA256(usuarioDTORequest.Clave);
+            }
             usuario.Rol = usuarioDTORequest.Rol.ToString();
 
             _context.Usuarios.Update(usuario);

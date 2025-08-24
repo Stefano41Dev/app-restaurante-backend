@@ -3,7 +3,6 @@
     public enum EstadoItemMenu
     {
         DISPONIBLE,
-        DESHABILITADO,
-        PROMOCION
+        DESHABILITADO
     }
 }
