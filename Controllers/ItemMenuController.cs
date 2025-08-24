@@ -1,10 +1,9 @@
-﻿using app_restaurante_backend.Models.DTOs.ItemMenu;
-using app_restaurante_backend.Service.Implementations;
+﻿using app_restaurante_backend.Custom;
+using app_restaurante_backend.Models.DTOs.ItemMenu;
 using app_restaurante_backend.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
+using Microsoft.AspNetCore.SignalR;
 
 namespace app_restaurante_backend.Controllers
 {
@@ -13,52 +12,79 @@ namespace app_restaurante_backend.Controllers
     [Authorize]
     public class ItemMenuController : ControllerBase
     {
+
         private readonly IItemMenuService _itemMenuService;
-        public ItemMenuController(IItemMenuService itemMenuService)
+        private readonly IHubContext<NotificationHub> _hubContext;
+
+        public ItemMenuController(IItemMenuService itemMenuService, IHubContext<NotificationHub> hubContext)
         {
             _itemMenuService = itemMenuService;
+            _hubContext = hubContext;
         }
+
         [HttpPost]
-        public IActionResult AgregarItemMenu([FromBody] ItemMenuRequestDTO itemMenu)
+        public async Task<IActionResult> AgregarItemMenu([FromBody] ItemMenuRequestDTO itemMenu)
         {
-            return Ok(_itemMenuService.AgregarItemMenu(itemMenu));
+            ItemMenuResponseDTO? nuevoItem = _itemMenuService.AgregarItemMenu(itemMenu);
+            await _hubContext.Clients.All.SendAsync("NuevoItemMenu", nuevoItem);
+            return Ok(nuevoItem);
         }
+
         [HttpPatch("cambiar-estado/{id}")]
-        public IActionResult CambiarEstadoItemMenu([FromRoute] int id,[FromBody] ItemMenuEstadoRequestDTO estado)
+        public async Task<IActionResult> CambiarEstadoItemMenu(
+            [FromRoute] int id,
+            [FromBody] ItemMenuEstadoRequestDTO estado
+        )
         {
-            return Ok(_itemMenuService.CambiarEstadoItemMenu(id, estado));
+            ItemMenuResponseDTO? cambioEstadoItem = _itemMenuService.CambiarEstadoItemMenu(id, estado);
+            await _hubContext.Clients.All.SendAsync("CambioEstadoItemMenu", cambioEstadoItem);
+            return Ok(cambioEstadoItem);
         }
+
         [HttpGet("{id}")]
         public IActionResult ObtenerItemMenu([FromRoute]int id)
         {
             return Ok(_itemMenuService.ObtenerItemMenu(id));
         }
+
         [HttpGet]
-        public IActionResult ObtenerItemsMenu([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public IActionResult ObtenerItemsMenu(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10
+        )
         {
             return Ok(_itemMenuService.ObtenerItemsMenu(pageNumber, pageSize));
         }
-        /*
-        [HttpGet("buscar-por-categoria/")]
-        public IActionResult ObtenerItemsMenuPorCategoria([FromQuery] int idCategoria, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
-        {
-            return Ok(_itemMenuService.ObtenerItemsMenuPorCategoria(idCategoria,pageNumber,pageSize));
-        }*/
+
         [HttpDelete("{id}")]
-        public IActionResult EliminarItemMenu([FromRoute] int id)
+        public async Task<IActionResult> EliminarItemMenu([FromRoute] int id)
         {
             _itemMenuService.EliminarItemMenu(id);
+            await _hubContext.Clients.All.SendAsync("EliminarItemMenu", id);
             return Ok("Se elimino correctamente el item del menu");
         }
+
         [HttpPut("{id}")]
-        public IActionResult ActualizarItemMenu([FromRoute] int id, [FromBody] ItemMenuRequestDTO itemMenu)
+        public async Task<IActionResult> ActualizarItemMenu(
+            [FromRoute] int id,
+            [FromBody] ItemMenuRequestDTO itemMenu
+        )
         {
-            return Ok(_itemMenuService.ActualizarItemMenu(id, itemMenu));
+            ItemMenuResponseDTO? itemMenuActualizado = _itemMenuService.ActualizarItemMenu(id, itemMenu);
+            await _hubContext.Clients.All.SendAsync("ActualizarItemMenu", itemMenuActualizado);
+            return Ok(itemMenuActualizado);
         }
+
         [HttpGet("buscar/")]
-        public IActionResult ObtenerItemsMenuPorNombre([FromQuery] string nombreItemMenu, [FromQuery] string nombreCategoria, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public IActionResult ObtenerItemsMenuPorNombre(
+            [FromQuery(Name = "nombre")] string nombreItemMenu = "",
+            [FromQuery(Name = "categoria")] string nombreCategoria = "",
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10
+        )
         {
             return Ok(_itemMenuService.ObtenerItemsMenuPorNombre(nombreItemMenu,nombreCategoria, pageNumber, pageSize));
         }
+
     }
 }

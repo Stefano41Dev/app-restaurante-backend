@@ -14,6 +14,7 @@ GO
 
 USE db_restaurante
 GO
+
 --usuarios
 CREATE TABLE usuarios
 (
@@ -22,10 +23,11 @@ CREATE TABLE usuarios
     apellido varchar(255) NOT NULL,
     correo   varchar(255) UNIQUE NOT NULL,
     clave    varchar(255) NOT NULL ,
-    rol      varchar(255) CHECK (rol IN ('Administrador', 'Mesero', 'Cocinero')) NOT NULL,
+    rol      varchar(255) CHECK (rol IN ('ADMINISTRADOR', 'CAJERO', 'CAMARERO')) NOT NULL,
     activo   bit
 )
 GO
+
 --mesas
 CREATE TABLE mesas
 (
@@ -37,6 +39,7 @@ CREATE TABLE mesas
     CONSTRAINT pk_mesas PRIMARY KEY (id)
 )
 GO
+
 --ordenes
 CREATE TABLE ordenes
 (
@@ -60,6 +63,7 @@ GO
 ALTER TABLE ordenes
     ADD CONSTRAINT FK_ORDENES_ON_MESA FOREIGN KEY (mesa_id) REFERENCES mesas (id)
 GO
+
 --categoria
 CREATE TABLE categorias_items
 (
@@ -75,6 +79,7 @@ GO
 ALTER TABLE categorias_items
     ADD CONSTRAINT uc_categorias_items_nombre UNIQUE (nombre)
 GO
+
 --item_menu
 CREATE TABLE items_menu
 (

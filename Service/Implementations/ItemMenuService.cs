@@ -222,18 +222,36 @@ namespace app_restaurante_backend.Service.Implementations
 
         Page<ItemMenuResponseDTO> IItemMenuService.ObtenerItemsMenuPorNombre(string nombreItemMenu,string nombreCategoria, int pageNumber, int pageSize)
         {
-           var itemMenuNombre = _context.ItemsMenus.Include(c => c.Categoria)
-                .Where(i => i.Nombre!.Contains(nombreItemMenu) && i.Categoria.Nombre!.Contains(nombreCategoria) && i.Activo == true)
+           var query = _context.ItemsMenus.Include(c => c.Categoria)
+                .Where(i => i.Activo == true)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(nombreItemMenu))
+            {
+                query = query.Where(i => i.Nombre!.Contains(nombreItemMenu));
+            }
+            if (!string.IsNullOrWhiteSpace(nombreCategoria))
+            {
+                query = query.Where(i => i.Categoria!.Nombre!.Contains(nombreCategoria));
+            }
+
+            var superQuery = query
                 .Select(i => new ItemMenuResponseDTO(
                     i.Id,
                     i.Nombre!,
                     i.Descripcion!,
                     i.Precio ?? 0,
                     i.EnlaceImagen ?? string.Empty,
-                    new CategoriaResponseDTO(i.CategoriaId, i.Categoria!.Nombre!, i.Categoria!.Descripcion!, i.Categoria!.PrecioMinimo ?? 0),
+                    new CategoriaResponseDTO(
+                        i.CategoriaId,
+                        i.Categoria!.Nombre!,
+                        i.Categoria!.Descripcion!,
+                        i.Categoria!.PrecioMinimo ?? 0
+                    ),
                     i.Estado.ToString()
                 ));
-            return itemMenuNombre.Paginate(pageNumber, pageSize);
+            return superQuery.Paginate(pageNumber, pageSize);
         }
+
     }
 }

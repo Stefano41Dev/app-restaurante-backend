@@ -59,5 +59,13 @@ namespace app_restaurante_backend.Controllers
             else { return Ok(new { isSuccess = true, token = _utilidades.GenerarJWT(usuarioEncontrado) }); }
         }
 
+        [HttpPost]
+        [Route("logout")]
+        [Authorize]
+        public IActionResult CerrarSesion()
+        {
+            return Ok(new { isSuccess = true, message = "Sesión cerrada correctamente" });
+        }
+
     }
 }
