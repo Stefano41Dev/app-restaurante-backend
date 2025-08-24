@@ -13,6 +13,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+// Configuración de CORS
+var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: myAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:4200")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                      });
+});
+
 // Configuración global para los enums
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -86,7 +101,12 @@ builder.Services.AddAuthentication(config =>
     };
 });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
+app.MapHub<NotificationHub>("/notifications");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -95,9 +115,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseHttpsRedirection();
+app.UseCors(myAllowSpecificOrigins);
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<ErrorHandlingMiddleware>();
+
+
 app.MapControllers();
 
 app.Run();

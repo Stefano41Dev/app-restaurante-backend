@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using app_restaurante_backend.Service.Interfaces;
+﻿using app_restaurante_backend.Custom;
 using app_restaurante_backend.Models.DTOs.Categoria;
-using System.Net;
+using app_restaurante_backend.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using System.Threading.Tasks;
 namespace app_restaurante_backend.Controllers
 {
     [Route("api/categorias")]
@@ -12,36 +13,49 @@ namespace app_restaurante_backend.Controllers
     public class CategoriaController : ControllerBase
     {
         private readonly ICategoriaService _categoriaService;
-        public CategoriaController(ICategoriaService categoriaService)
+        private readonly IHubContext<NotificationHub> _hubContext;
+
+        public CategoriaController(ICategoriaService categoriaService, IHubContext<NotificationHub> hubContext)
         {
             _categoriaService = categoriaService;
+            _hubContext = hubContext;
         }
+
         [HttpGet]
         public IActionResult ObtenerCategorias()
         {
             var categorias = _categoriaService.ObtenerCategorias();
             return Ok(categorias);
         }
+
         [HttpPost]
-        public IActionResult crearCategoria([FromBody] CategoriaRequestDTO categoriaRequestDTO)
+        public async Task<IActionResult> CrearCategoria([FromBody] CategoriaRequestDTO categoriaRequestDTO)
         {
-            return Ok(_categoriaService.CrearCategoria(categoriaRequestDTO));
+            CategoriaResponseDTO? categoriaCreada = _categoriaService.CrearCategoria(categoriaRequestDTO);
+            await _hubContext.Clients.All.SendAsync("ActualizarCategoria", categoriaCreada);
+            return Ok(categoriaCreada);
         }
+
         [HttpGet("{id}")]
         public IActionResult ObtenerCategoria([FromRoute] int id)
         {
             return Ok(_categoriaService.ObtenerCategoria((short)id));
         }
+
         [HttpDelete("{id}")]
-        public IActionResult EliminarCategoria([FromRoute] int id)
+        public async Task<IActionResult> EliminarCategoria([FromRoute] int id)
         {
             _categoriaService.EliminarCategoria((short)id);
+            await _hubContext.Clients.All.SendAsync("EliminarCategoria", id);
             return Ok("Se elimino correctamente la categoria");
         }
+
         [HttpPut("{id}")]
-        public IActionResult ActualizarCategoria([FromRoute] short id, [FromBody] CategoriaRequestDTO categoriaRequestDTO)
+        public async Task<IActionResult> ActualizarCategoria([FromRoute] short id, [FromBody] CategoriaRequestDTO categoriaRequestDTO)
         {
-            return Ok(_categoriaService.ActualizarCategoria(id, categoriaRequestDTO));
+            CategoriaResponseDTO? categoriaActualizada = _categoriaService.ActualizarCategoria(id, categoriaRequestDTO);
+            await _hubContext.Clients.All.SendAsync("ActualizarCategoria", categoriaActualizada);
+            return Ok(categoriaActualizada);
         }
         
     }

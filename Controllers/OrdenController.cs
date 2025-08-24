@@ -1,31 +1,33 @@
-﻿using app_restaurante_backend.Models.DTOs.Mesa;
+﻿using app_restaurante_backend.Custom;
 using app_restaurante_backend.Models.DTOs.Orden;
-using app_restaurante_backend.Service.Implementations;
 using app_restaurante_backend.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace app_restaurante_backend.Controllers
 {
     [Route("api/ordenes")]
     [ApiController]
     [Authorize]
-
     public class OrdenController : ControllerBase
     {
         private readonly IOrdenService _service;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public OrdenController(IOrdenService Service)
+        public OrdenController(IOrdenService Service, IHubContext<NotificationHub> hubContext)
         {
             _service = Service;
+            _hubContext = hubContext;
         }
+
         [HttpPost]
-        public IActionResult CrearOrden([FromBody] OrdenRequestDto requestDto)
+        public async Task<IActionResult> CrearOrden([FromBody] OrdenRequestDto requestDto)
         {
             try
             {
-                var orden = _service.CrearOrden(requestDto);
+                OrdenResponseDto? orden = _service.CrearOrden(requestDto);
+                await _hubContext.Clients.All.SendAsync("ActualizarOrden", orden);
                 return Ok(orden);
             }
             catch (Exception ex)
@@ -33,40 +35,47 @@ namespace app_restaurante_backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
         [HttpGet]
-        public IActionResult obtenerOrdenes([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public IActionResult ObtenerOrdenes([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var ordenes = _service.ListaOrdenes(pageNumber, pageSize);
             return Ok(ordenes);
         }
+
         [HttpGet("hoy")]
-        public IActionResult obtenerOrdenesDeHoy([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public IActionResult ObtenerOrdenesDeHoy([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var ordenes = _service.ListaOrdenesDeHoy(pageNumber, pageSize);
             return Ok(ordenes);
         }
 
         [HttpGet("{id}")]
-        public IActionResult obtenerOrden([FromRoute] long id)
+        public IActionResult PbtenerOrden([FromRoute] long id)
         {
-            var orden = _service.ObtenerOrden(id);
+            OrdenResponseDto? orden = _service.ObtenerOrden(id);
             if (orden == null)
             {
                 return NotFound("Orden no encontrada");
             }
             return Ok(orden);
         }
+
         [HttpPatch("cambiar-estado/{id}")]
-        public IActionResult CambiarEstadoOrden([FromRoute] int id, [FromBody] OrdenEstadoRequestDto estado)
+        public async Task<IActionResult> CambiarEstadoOrden([FromRoute] int id, [FromBody] OrdenEstadoRequestDto estado)
         {
-            return Ok(_service.ActualizarEstado(id, estado));
+            OrdenResponseDto? orden = _service.ActualizarEstado(id, estado);
+            await _hubContext.Clients.All.SendAsync("ActualizarEstadoOrden", orden);
+            return Ok(orden);
         }
+
         [HttpPut("{id}")]
-        public IActionResult ActualizarOrden([FromRoute] long id, [FromBody] OrdenActualizarRequestDTO requestDto)
+        public async Task<IActionResult> ActualizarOrden([FromRoute] long id, [FromBody] OrdenActualizarRequestDTO requestDto)
         {
             try
             {
-                var ordenActualizada = _service.ActualizarOrden(id, requestDto);
+                OrdenResponseDto? ordenActualizada = _service.ActualizarOrden(id, requestDto);
+                await _hubContext.Clients.All.SendAsync("ActualizarOrden", ordenActualizada);
                 return Ok(ordenActualizada);
             }
             catch (Exception ex)
@@ -74,6 +83,7 @@ namespace app_restaurante_backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
         [HttpDelete]
         public IActionResult DesactivarOrdenes()
         {
@@ -87,15 +97,18 @@ namespace app_restaurante_backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
         [HttpGet("por-mesa-pendiente/{idMesa}")]
         public IActionResult ObtenerOrdenPendientePorMesa([FromRoute] short idMesa)
         {
             return Ok(_service.ObtenerOrdenPendientePorMesa(idMesa));
         }
+
         [HttpPatch("pagar/{id}")]
         public IActionResult MarcarOrdenPagada([FromRoute] long id)
         {
             return Ok(_service.MarcarOrdenPagada(id));
         }
+
     }
 }
