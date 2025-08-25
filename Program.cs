@@ -1,6 +1,7 @@
 using app_restaurante_backend.Custom;
 using app_restaurante_backend.Data;
 using app_restaurante_backend.Error;
+using app_restaurante_backend.Reports.Service;
 using app_restaurante_backend.Service.Implementations;
 using app_restaurante_backend.Service.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,10 +9,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Configuración de CORS
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -83,6 +87,7 @@ builder.Services.AddScoped<IItemMenuService, ItemMenuService>();
 builder.Services.AddScoped<IMesaService, MesaService>();
 builder.Services.AddScoped<IOrdenService, OrdenService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ReportService>();
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

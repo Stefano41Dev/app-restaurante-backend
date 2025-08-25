@@ -16,7 +16,7 @@ namespace app_restaurante_backend.Service.Implementations
     {
         private readonly DbRestauranteContext _context;
         private readonly IHubContext<NotificationHub> _hubContext;
-        public static double igv = 0.18;
+        private readonly decimal tasaIgv = 0.18M;
 
         public OrdenService(DbRestauranteContext context, IHubContext<NotificationHub> hubContext)
         {
@@ -69,11 +69,7 @@ namespace app_restaurante_backend.Service.Implementations
                         orden.Mesa.Estado.ToString()
                     );
                     _context.Mesas.Update(orden.Mesa);
-                    await _hubContext.Clients.All.SendAsync("ActualizarMesa", mesaDto);
-                }
-                if (nuevoEstado == EstadoOrden.CANCELADA)
-                {
-                    orden.Activo = false;
+                    await _hubContext.Clients.All.SendAsync("ActualizarEstadoMesa", mesaDto);
                 }
             }
 
@@ -148,19 +144,24 @@ namespace app_restaurante_backend.Service.Implementations
 
             requestDto.Detalles.ForEach(d =>
             {
-                ItemsMenu item = _context.ItemsMenus.Find(d.PlatoId)!;
+                ItemsMenu item = _context.ItemsMenus.Find(d.PlatoId) ?? throw new ArgumentException($"El plato con ID {d.PlatoId} no existe.");
+
+                decimal precioVenta = (decimal)item.Precio!;
+                decimal valorBase = precioVenta / (1 + tasaIgv);
+                decimal montoIgv = valorBase * tasaIgv;
+
                 DetalleOrdene detalle = new()
                 {
                     OrdenId = orden.Id,
                     PlatoId = d.PlatoId,
                     Cantidad = d.Cantidad,
-                    PrecioUnitario = item.Precio,
+                    PrecioUnitario = (double)valorBase,
+                    Activo = true,
+                    Igv = (double)montoIgv
                 };
+                detalle.Subtotal = (double)(valorBase * detalle.Cantidad);
+                detalle.Total = (double)(precioVenta * detalle.Cantidad);
 
-                detalle.Subtotal = detalle.PrecioUnitario * detalle.Cantidad;
-                double montoIgv = (detalle.Subtotal??0) * igv;
-                detalle.Total = detalle.Subtotal + montoIgv;
-                detalle.Igv = montoIgv;
                 orden.MontoSubtotal += detalle.Subtotal;
                 orden.MontoTotal += detalle.Total;
 
@@ -321,23 +322,23 @@ namespace app_restaurante_backend.Service.Implementations
             orden.Activo = true;
             requestDto.Detalles.ForEach(d =>
             {
-                ItemsMenu item = _context.ItemsMenus.Find(d.PlatoId);
-                if (item == null)
-                {
-                    throw new ArgumentException($"El plato con ID {d.PlatoId} no existe.");
-                }
+                ItemsMenu item = _context.ItemsMenus.Find(d.PlatoId) ?? throw new ArgumentException($"El plato con ID {d.PlatoId} no existe.");
+                decimal precioVenta = (decimal)item.Precio!;
+                decimal valorBase = precioVenta / (1 + tasaIgv);
+                decimal montoIgv = valorBase * tasaIgv;
+
                 DetalleOrdene detalle = new()
                 {
                     OrdenId = orden.Id,
                     PlatoId = d.PlatoId,
                     Cantidad = d.Cantidad,
-                    PrecioUnitario = item.Precio,
-
+                    PrecioUnitario = (double)valorBase,
+                    Activo = true,
+                    Igv = (double)montoIgv
                 };
-                detalle.Subtotal = detalle.PrecioUnitario * detalle.Cantidad;
-                double montoIgv = detalle.Subtotal ?? 0 * igv;
-                detalle.Total = detalle.Subtotal + montoIgv;
-                detalle.Igv = montoIgv;
+                detalle.Subtotal = (double)(valorBase * detalle.Cantidad);
+                detalle.Total = (double)(precioVenta * detalle.Cantidad);
+
                 orden.MontoSubtotal += detalle.Subtotal;
                 orden.MontoTotal += detalle.Total;
                 orden.DetalleOrdenes.Add(detalle);
@@ -411,10 +412,11 @@ namespace app_restaurante_backend.Service.Implementations
                 ));
             return ordenes.Paginate(pageNumber, pageSize);
         }
+
         public void DesactivarOrdenes()
         {
             List<Ordene> lista = _context.Ordenes
-                 .Where(o => o.Activo == true && (o.Estado == EstadoOrden.COMPLETADA || o.Estado == EstadoOrden.CANCELADA))
+                 .Where(o => o.Activo == true && (o.Estado == EstadoOrden.PAGADA || o.Estado == EstadoOrden.CANCELADA))
                  .ToList();
             if (lista.Count > 0)
             {
@@ -430,6 +432,7 @@ namespace app_restaurante_backend.Service.Implementations
                 throw new Exception("No hay órdenes activas para desactivar.");
             }
         }
+
         public OrdenResponseDto ObtenerOrdenPendientePorMesa(short idMesa)
         {
           var orden = _context.Ordenes
@@ -486,7 +489,7 @@ namespace app_restaurante_backend.Service.Implementations
                 orden.Mesa.Capacidad,
                 orden.Mesa.Estado.ToString()
             );
-            await _hubContext.Clients.All.SendAsync("ActualizarMesa", mesaDto);
+            await _hubContext.Clients.All.SendAsync("ActualizarEstadoMesa", mesaDto);
             orden.Estado = EstadoOrden.PAGADA;
             _context.Ordenes.Update(orden);
 

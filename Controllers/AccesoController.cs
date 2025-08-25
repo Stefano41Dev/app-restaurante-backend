@@ -64,7 +64,7 @@ namespace app_restaurante_backend.Controllers
         [Authorize]
         public IActionResult CerrarSesion()
         {
-            return Ok(new { isSuccess = true, message = "Sesión cerrada correctamente" });
+            return NoContent();
         }
 
     }
