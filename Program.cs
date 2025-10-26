@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
 using QuestPDF.Infrastructure;
+using Microsoft.Azure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +26,12 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: myAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:4200")
-                                .AllowAnyHeader()
+                          policy.WithOrigins(
+                                     "http://localhost:4200",
+                                     "https://app-restaurante-frontend.azurewebsites.net",
+                                     "https://app-restaurante-dotnet.netlify.app"
+                                 )
+                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
                                 .AllowCredentials();
                       });
@@ -40,7 +45,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
+/*builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -74,11 +79,11 @@ builder.Services.AddSwaggerGen(c =>
         Array.Empty<string>()
     }
     });
-});
+});*/
 
 builder.Services.AddDbContext<DbRestauranteContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL1"));
 });
 
 builder.Services.AddSingleton<Utilidades>();
@@ -107,19 +112,30 @@ builder.Services.AddAuthentication(config =>
     };
 });
 
-builder.Services.AddSignalR();
+
+builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["Azure:SignalR:ConnectionString"]!);
 
 var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+    //  1. Migración de DB: Solo en Desarrollo (para evitar el error en el proceso de publicación)
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<DbRestauranteContext>();
+        if (dbContext.Database.IsRelational())
+        {
+            dbContext.Database.Migrate();
+        }
+    }
+
+    //  2. Swagger: Solo en Desarrollo
+   // app.UseSwagger();
+   // app.UseSwaggerUI();
+}
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.MapHub<NotificationHub>("/notifications");
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 app.UseCors(myAllowSpecificOrigins);
